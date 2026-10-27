@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "release": "https://github.com/JiaoTang666/arbor/releases/tag/paper-data-v1",
+  "asset": "arbor-paper-data-v1.tar.gz",
+  "archive_bytes": 1087923026,
+  "archive_sha256": "653cc701014c899b5ca37c823acdab42c1af60c615de851a52505ff76ae3e508",
+  "dataset_manifest_sha256": "671456813f2e19885c4448e7007693f241962c210a38b2560730070d3013f639",
+  "verification": "Actual private GitHub release download, safe extraction, manifest identity and every member SHA256",
+  "download_client": "GitHub CLI through arbor.download.fetch on Windows Python 3.13",
+  "history_transactions": 8840117,
+  "test_transactions": 979572,
+  "checked_members": 14
+}

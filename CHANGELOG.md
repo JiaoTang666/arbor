@@ -7,3 +7,4 @@
 - Added explicit database retention/cleanup, detached queues, completion checks and result export.
 - Distributed frozen models, verified paper inputs, raw-input processing and reference tables separately from new runs.
 - Added bilingual instructions, native smoke validation and cross-language model parity checks.
+- Fixed shutdown accounting for out-of-order cross-shard completion reports: preserve their signed balance and require zero before drain completion. Placement, transaction execution and metric definitions are unchanged.

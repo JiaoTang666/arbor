@@ -126,14 +126,14 @@ func durationFromEnvMs(name string, fallback time.Duration) time.Duration {
 func (ss *StopSignal) ObserveSecondLegProgress(firstLegCount int, secondLegCount int) {
 	ss.stoplock.Lock()
 	defer ss.stoplock.Unlock()
+	// Reports from different shards can arrive out of execution order. Retain
+	// the signed balance until both legs have been observed; clamping loses
+	// early second-leg reports and can leave a fully completed run waiting.
 	ss.pendingSecondLegTx += firstLegCount - secondLegCount
-	if ss.pendingSecondLegTx < 0 {
-		ss.pendingSecondLegTx = 0
-	}
 }
 
 func (ss *StopSignal) secondLegDrainReadyLocked() bool {
-	return !ss.waitSecondLegDrain || ss.pendingSecondLegTx <= 0
+	return !ss.waitSecondLegDrain || ss.pendingSecondLegTx == 0
 }
 
 // when receiving a message with an empty txList, then call this function to increase stopGap

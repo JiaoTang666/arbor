@@ -4,6 +4,8 @@
 
 Paper equivalence evidence is separate:
 
+- `paper_download.json`: actual private-release download and extracted-member verification.
+
 - `docs/paper_data_parity.json`: canonical inputs and six dense-array identities.
 - `docs/paper_layout_parity.json`: rebuilt four-shard routing and initial-ledger identities.
 - `docs/source_provenance.json`: source and model provenance.

@@ -1,5 +1,9 @@
 name: build-and-smoke
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -19,7 +23,7 @@ jobs:
       - run: .venv/bin/pytest -q
       - run: .venv/bin/ruff check src tests scripts --select F821,F822,F823
       - run: .venv/bin/python scripts/check_parity.py
-      - run: go test -p 2 ./supervisor/committee ./build ./core ./chain
+      - run: go test -p 2 ./supervisor/committee ./supervisor/signal ./build ./core ./chain
         working-directory: native/engine
       - run: ./arbor run demo --output runs/ci --cleanup-db --json
       - run: ./arbor results runs/ci --plot --json
