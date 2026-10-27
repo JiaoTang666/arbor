@@ -6,7 +6,7 @@ func TestDrainReportOrder(t *testing.T) {
 	for name, reports := range map[string][][2]int{
 		"source first": {{3, 0}, {0, 3}},
 		"target first": {{0, 3}, {3, 0}},
-		"interleaved": {{1, 0}, {0, 3}, {2, 0}},
+		"interleaved":  {{1, 0}, {0, 3}, {2, 0}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			s := NewStopSignal(12, 4)

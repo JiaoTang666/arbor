@@ -124,7 +124,7 @@ The launcher clears inherited `GOMAXPROCS`, `GOMEMLIMIT` and `BLOCK_EMULATOR_STA
 ```bash
 .venv/bin/pytest -q
 .venv/bin/python scripts/check_parity.py
-cd native/engine && go test -p 2 ./supervisor/committee ./build ./core ./chain
+cd native/engine && go test -p 2 ./networks ./supervisor ./supervisor/committee ./supervisor/signal ./build ./core ./chain
 ```
 
 Python modules live in `src/arbor`; Go/C++ kernels in `native`; experiment differences are YAML recipes. [Architecture and validation](docs/architecture.md) describe interfaces and equivalence checks.

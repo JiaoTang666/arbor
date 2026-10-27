@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "cpu_affinity": [
+    0,
+    1
+  ],
+  "cases": {
+    "demo": {
+      "completed": 3,
+      "all_complete": true,
+      "binary_sha256": "67ee67407831ff5edc42ed00082d6810b299b97404ab76d6a0438bca3d21e339",
+      "all_exited_normally": true,
+      "cleanup_pass": true
+    },
+    "ablation": {
+      "completed": 5,
+      "all_complete": true,
+      "binary_sha256": "67ee67407831ff5edc42ed00082d6810b299b97404ab76d6a0438bca3d21e339",
+      "all_exited_normally": true,
+      "cleanup_pass": true
+    }
+  },
+  "ci": {
+    "url": "https://github.com/JiaoTang666/arbor/actions/runs/40478583867",
+    "conclusion": "success",
+    "tested_commit": "1f033c0cbf777a1263f99b922810d66c848c9761"
+  }
+}
