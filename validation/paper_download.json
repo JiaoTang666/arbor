@@ -7,6 +7,7 @@
   "dataset_manifest_sha256": "671456813f2e19885c4448e7007693f241962c210a38b2560730070d3013f639",
   "verification": "Actual private GitHub release download, safe extraction, manifest identity and every member SHA256",
   "download_client": "GitHub CLI through arbor.download.fetch on Windows Python 3.13",
+  "linux_cli_installation": "PASS: arbor data paper with the identical verified archive cache on clean Linux Python 3.12",
   "history_transactions": 8840117,
   "test_transactions": 979572,
   "checked_members": 14

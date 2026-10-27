@@ -105,6 +105,13 @@ def execute(target, case, dataset, layout, progress):
         now = time.monotonic()
         if now-begun > case["timeout_seconds"]:
             save(target/"timeout_processes.json", [dict(pid=p.pid, command=p.args, returncode=p.poll()) for p in children])
+            for process in children:
+                if process.poll() is None and process.args[0] == str(binary):
+                    try:
+                        process.send_signal(signal.SIGQUIT)
+                    except ProcessLookupError:
+                        pass
+            time.sleep(1)  # Preserve Go stacks in the failed run's existing logs.
             raise TimeoutError("native execution deadline")
         failed = [p for p in children if p.poll() not in (None, 0)]
         if failed:

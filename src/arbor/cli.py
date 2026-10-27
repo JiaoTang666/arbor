@@ -65,7 +65,7 @@ def parser():
 
 def emit(value, args):
     if args.json:
-        print(json.dumps(value, ensure_ascii=False, default=str))
+        print(json.dumps(value, ensure_ascii=False, default=str), flush=True)
         return
     from rich.console import Console
     from rich.table import Table
@@ -103,7 +103,7 @@ def watch(directory, args):
                         f"Accepted {state.get('accepted_transactions',0)}  ·  Completed {state.get('completed_transactions',0)} / {state.get('expected','?')}\n"
                         f"Elapsed {time.monotonic()-launched:.0f}s  ·  {directory}")
                 live.update(Panel(text, border_style="cyan"))
-            key = (state.get("stage"), state.get("current"), state.get("completed"))
+            key = tuple(state.get(k) for k in ("stage", "current", "completed", "accepted_transactions", "completed_transactions"))
             if key != last and not live:
                 emit(dict(run=str(directory), **state), args)
                 last = key

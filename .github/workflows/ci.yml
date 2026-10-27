@@ -38,6 +38,12 @@ jobs:
             runs/ci/summary.*
             runs/ci/status.json
             runs/ci/controller.log
+            runs/ci/failure.json
+            runs/ci/cases/**/timeout_processes.json
+            runs/ci/cases/**/native/**/*.log
+            runs/ci/cases/**/native/gate/*.json
+            runs/ci/cases/**/native/observer_result.json
+            runs/ci/cases/**/native/forest/result.json
             runs/ci/figures/
             runs/ablation/summary.*
             runs/ablation/status.json
