@@ -215,13 +215,20 @@ func (d *Supervisor) SupervisorTxHandling() {
 	}
 	stopmsg := message.MergeMessage(message.CStop, []byte("this is a stop message~"))
 	d.sl.Slog.Println("Supervisor: now sending cstop message to all nodes")
+	stopResults := make(chan error, int(d.ChainConfig.ShardNums*d.ChainConfig.Nodes_perShard))
 	for sid := uint64(0); sid < d.ChainConfig.ShardNums; sid++ {
 		for nid := uint64(0); nid < d.ChainConfig.Nodes_perShard; nid++ {
-			networks.TcpDial(stopmsg, d.Ip_nodeTable[sid][nid])
+			go func(addr string) { stopResults <- networks.TcpDialWait(stopmsg, addr) }(d.Ip_nodeTable[sid][nid])
 		}
 	}
-	// make sure all stop messages are sent.
-	time.Sleep(time.Duration(params.Delay+params.JitterRange+3) * time.Millisecond)
+	for i := 0; i < cap(stopResults); i++ {
+		if err := <-stopResults; err != nil {
+			d.sl.Slog.Printf("stop message failed: %v", err)
+			if nativeCloseoutErr == nil {
+				nativeCloseoutErr = err
+			}
+		}
+	}
 
 	d.sl.Slog.Println("Supervisor: now Closing")
 	d.listenStop = true

@@ -8,3 +8,4 @@
 - Distributed frozen models, verified paper inputs, raw-input processing and reference tables separately from new runs.
 - Added bilingual instructions, native smoke validation and cross-language model parity checks.
 - Fixed shutdown accounting for out-of-order cross-shard completion reports: preserve their signed balance and require zero before drain completion. Placement, transaction execution and metric definitions are unchanged.
+- Wait for stop-message writes before closing the connection pool, replacing a fixed 3 ms delay that could strand nodes on small-CPU hosts.

@@ -54,29 +54,33 @@ func TcpDial(context []byte, addr string) {
 // never under the global connection-map lock. It must not reenter networking.
 func TcpDialObserved(context []byte, addr string, observe func(string, time.Time, error)) {
 	payload := append(append([]byte(nil), context...), '\n')
-	if os.Getenv("BLOCK_EMULATOR_CLPA_EPOCH_V1") == "1" {
-		go func() {
-			if err := sendEpochPooled(payload, addr, observe, 120*time.Second); err != nil {
-				log.Printf("epoch transport to %s failed (no automatic retry): %v", addr, err)
-				if observe != nil {
-					observe("transport_error", time.Now(), err)
-				}
-			}
-		}()
-		return
-	}
 	go func() {
-		// simulate the delay
-		thisDelay := params.Delay
-		if params.JitterRange != 0 {
-			thisDelay = randomDelayGenerator.Intn(params.JitterRange) - params.JitterRange/2 + params.Delay
-		}
-		time.Sleep(time.Millisecond * time.Duration(thisDelay))
-
-		if err := sendPooledFrame(payload, addr, observe, net.Dial); err != nil {
+		if err := tcpSendFrame(payload, addr, observe); err != nil {
 			log.Printf("transport to %s failed (no automatic retry): %v", addr, err)
 		}
 	}()
+}
+
+// TcpDialWait waits for the entire frame's socket write. Shutdown uses it before
+// closing the connection pool; a fixed sleep cannot drain asynchronous sends.
+func TcpDialWait(context []byte, addr string) error {
+	return tcpSendFrame(append(append([]byte(nil), context...), '\n'), addr, nil)
+}
+
+func tcpSendFrame(payload []byte, addr string, observe func(string, time.Time, error)) error {
+	if os.Getenv("BLOCK_EMULATOR_CLPA_EPOCH_V1") == "1" {
+		err := sendEpochPooled(payload, addr, observe, 120*time.Second)
+		if err != nil && observe != nil {
+			observe("transport_error", time.Now(), err)
+		}
+		return err
+	}
+	thisDelay := params.Delay
+	if params.JitterRange != 0 {
+		thisDelay = randomDelayGenerator.Intn(params.JitterRange) - params.JitterRange/2 + params.Delay
+	}
+	time.Sleep(time.Millisecond * time.Duration(thisDelay))
+	return sendPooledFrame(payload, addr, observe, net.Dial)
 }
 
 type observedWriteConn struct {
