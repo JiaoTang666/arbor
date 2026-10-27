@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "arrays": {
+    "history/sender": true,
+    "history/recipient": true,
+    "history/timestamp": true,
+    "test/sender": true,
+    "test/recipient": true,
+    "test/timestamp": true
+  },
+  "history_accepted": 8840117,
+  "test_accepted": 979572,
+  "reference_input_sha256": "a09949047e1c10b3cd304acec350859526880b6128a68b30c630c8a3d875d339",
+  "exported_input_sha256": "a09949047e1c10b3cd304acec350859526880b6128a68b30c630c8a3d875d339",
+  "test_input_bytes_exact": true
+}

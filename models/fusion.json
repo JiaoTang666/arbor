@@ -1,0 +1,120 @@
+{
+  "global_weights": [
+    0.13161066741024754,
+    0.06931609604619356,
+    0.7990732365435589
+  ],
+  "conditioned_weights": [
+    [
+      0.04750156312927191,
+      2.8941421741784934e-17,
+      0.9524984368707281
+    ],
+    [
+      0.0,
+      0.6685816556863813,
+      0.3314183443136187
+    ],
+    [
+      0.1943649461673276,
+      0.6746821244000069,
+      0.13095292943266565
+    ]
+  ],
+  "entry_weights": [
+    0.020502213159165474,
+    0.0,
+    0.9794977868408346
+  ],
+  "global_fit": {
+    "rows": 7132900,
+    "target_sum": 200392.0,
+    "iterations": 8,
+    "objective": 4.534347272749145,
+    "success": true,
+    "regularization": 0.0,
+    "weights": [
+      0.13161066741024754,
+      0.06931609604619356,
+      0.7990732365435589
+    ]
+  },
+  "class_fit": [
+    {
+      "rows": 6860469,
+      "target_sum": 103369.0,
+      "iterations": 7,
+      "objective": 7.714600756106551,
+      "success": true,
+      "regularization": 0.01,
+      "weights": [
+        0.04750156312927191,
+        2.8941421741784934e-17,
+        0.9524984368707281
+      ]
+    },
+    {
+      "rows": 146487,
+      "target_sum": 42141.0,
+      "iterations": 7,
+      "objective": 0.9670941216789575,
+      "success": true,
+      "regularization": 0.01,
+      "weights": [
+        0.0,
+        0.6685816556863813,
+        0.3314183443136187
+      ]
+    },
+    {
+      "rows": 125944,
+      "target_sum": 54882.0,
+      "iterations": 8,
+      "objective": 0.8850087608886461,
+      "success": true,
+      "regularization": 0.01,
+      "weights": [
+        0.1943649461673276,
+        0.6746821244000069,
+        0.13095292943266565
+      ]
+    }
+  ],
+  "entry_fit": {
+    "rows": 5458270,
+    "target_sum": 385973.5,
+    "iterations": 8,
+    "objective": 3.3354472396273933,
+    "success": true,
+    "regularization": 0.0,
+    "weights": [
+      0.020502213159165474,
+      0.0,
+      0.9794977868408346
+    ]
+  },
+  "training_prefixes": [
+    {
+      "day": 12,
+      "prefix": 4541764,
+      "classes": {
+        "unknown": 2957630,
+        "distributed": 62585,
+        "bursty": 54528,
+        "definition": ">=3 gaps; CV<=1 versus >1; zero gaps bursty"
+      }
+    },
+    {
+      "day": 16,
+      "prefix": 5988918,
+      "classes": {
+        "unknown": 3902839,
+        "distributed": 83902,
+        "bursty": 71416,
+        "definition": ">=3 gaps; CV<=1 versus >1; zero gaps bursty"
+      }
+    }
+  ],
+  "regularization": 0.01,
+  "cutoff_policy": "12/16d fit, 20d diagnostic; no retuning"
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "source": "temporal_fusion_candidate_v1_20261009/kernel.cpp",
+    "sha256": "a06039e6988092073cb7a955c1e09568c76bb52062c06e9055b00689e12f734c"
+  },
+  {
+    "source": "temporal_fusion_candidate_v1_20261009/core.py",
+    "sha256": "46b537ff2b1cdbbf2fa5a4f6f4f8546b4f22ce5dc10d0ec176557099ceb2bf60"
+  },
+  {
+    "source": "temporal_fusion_candidate_v1_20261009/core.py",
+    "sha256": "46b537ff2b1cdbbf2fa5a4f6f4f8546b4f22ce5dc10d0ec176557099ceb2bf60"
+  },
+  {
+    "source": "paper_evaluation_v1_20261005/build_arms.py",
+    "sha256": "82e7f3148b2d5231f8f6b982c9d6fb4e9ddd1199753197de627317583ff99341"
+  },
+  {
+    "source": "temporal_fusion_candidate_v1_20261009/core.py",
+    "sha256": "46b537ff2b1cdbbf2fa5a4f6f4f8546b4f22ce5dc10d0ec176557099ceb2bf60"
+  },
+  {
+    "source": "temporal_fusion_candidate_v1_20261009/core.py",
+    "sha256": "46b537ff2b1cdbbf2fa5a4f6f4f8546b4f22ce5dc10d0ec176557099ceb2bf60"
+  },
+  {
+    "source": "temporal_fusion_candidate_v1_20261009/run.py",
+    "sha256": "e0a4b35459779ce8ed321992a6b53ea4ec93a7f1434620a9bbf05965baa3b9bb"
+  },
+  {
+    "source": "entry_forest_facts_v2_20261014/source.py",
+    "sha256": "e03ecf848afc416f41cb3b0c42b97c4d74f1bffa3a819ce98c89083a87b24e80"
+  },
+  {
+    "source": "entry_placement_light_v2_20261014/slow_adapter.py",
+    "sha256": "2652568f3eabe0347ab8eadce050f090a4287ae03c4633d3a5b7e73efd5200e3"
+  },
+  {
+    "source": "periodic_prior_v1_20260928/graph.py",
+    "sha256": "783909b5e308ffc9ee2ee8b1047111d9062ebb1529de76594858753b5fd12024"
+  },
+  {
+    "source": "prior_maintenance_v2_20260928/graph_v2.py",
+    "sha256": "3867eaafa51da7e481b11d628b63a53266d3cb417a9d40b746cc791d1405d23f"
+  },
+  {
+    "source": "entry_placement_policy_v1_20261011/live_prior.py",
+    "sha256": "d20986ed4061bbf38384e451ca2aba96531e4fdb7485fd5e3970087b2831a6c3"
+  },
+  {
+    "source": "entry_placement_light_v2_20261014/graph_prior.py",
+    "sha256": "4ee646182da84355eda38ba5a042718e9898d26e388cc5624abb34bd2653c07c"
+  },
+  {
+    "source": "nn_placement_v1_20261010/compact.py",
+    "sha256": "28e6b54376cea5ce77718d2aa19d212f23a535ab9eed23569753220d8ad1490f"
+  },
+  {
+    "source": "entry_placement_light_v2_20261014/contract.py",
+    "sha256": "42c37f887b53178e4d16e446ae8d4a511bd6672dcad0729e24bdcb099402ca3a"
+  },
+  {
+    "source": "entry_cost_ranker_v1_20261015/candidate_contract.py",
+    "sha256": "d8313106013a002c75d95c7d7ce9515bca596296a4ac4268791c74d89c7aba00"
+  },
+  {
+    "source": "entry_cost_ranker_v1_20261015/ranker.py",
+    "sha256": "30b0ed153aaa58300bce364c5dfb5038f9076e489992da5f45fa1b8bef8f3c52"
+  },
+  {
+    "source": "evidence/v35_clockfix_20260906/entry_cost_ranker_v1_20261015/r1/final_model.json",
+    "sha256": "f03d32a81f77f805d5fe0c3c018112ea246abc36c563c5eb7856b81f9b59859b"
+  },
+  {
+    "source": "evidence/v35_clockfix_20260906/temporal_fusion_candidate_v1_20261009/model.json",
+    "sha256": "c9cb416989bdb6880c32e46a0d367b3899a336558afe8e333c0e2b6e46dfbea8"
+  },
+  {
+    "source": "evidence/v35_clockfix_20260906/entry_cost_ranker_native_v1_20261015/r2/native/Full/paramsConfig.json",
+    "sha256": "b8bfabbf371c2121191ac1090e55f06778e50f1d74778191a1b91acf17efca4f"
+  }
+]

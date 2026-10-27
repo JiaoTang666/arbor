@@ -1,0 +1,398 @@
+{
+  "schema": "entry_cost_ranker_v1",
+  "status": "FIT",
+  "feature_order": [
+    "visible_pending_slots",
+    "queue_slots",
+    "queue_receive_age_intervals",
+    "queue_missing",
+    "visible_pending_delta_5s",
+    "pending_history_missing",
+    "last_nonempty_block_fill",
+    "nonempty_service_mean_intervals",
+    "nonempty_commit_receive_age_intervals",
+    "service_missing",
+    "graph_day_log_hour_stage_rate",
+    "graph_source_age_hours",
+    "graph_receive_age_intervals",
+    "graph_missing",
+    "new_origins_20s_log_count",
+    "active_origins_20s_log_count",
+    "assigned_nn_half_stages_5s_slots",
+    "family_concentration_20s",
+    "family_concentration_missing",
+    "previous_pressure_share"
+  ],
+  "normalizer": {
+    "features": [
+      "visible_pending_slots",
+      "queue_slots",
+      "queue_receive_age_intervals",
+      "queue_missing",
+      "visible_pending_delta_5s",
+      "pending_history_missing",
+      "last_nonempty_block_fill",
+      "nonempty_service_mean_intervals",
+      "nonempty_commit_receive_age_intervals",
+      "service_missing",
+      "graph_day_log_hour_stage_rate",
+      "graph_source_age_hours",
+      "graph_receive_age_intervals",
+      "graph_missing",
+      "new_origins_20s_log_count",
+      "active_origins_20s_log_count",
+      "assigned_nn_half_stages_5s_slots",
+      "family_concentration_20s",
+      "family_concentration_missing",
+      "previous_pressure_share"
+    ],
+    "mean": [
+      1.2874744791666677,
+      0.8034458333333336,
+      0.0,
+      0.0,
+      0.03993124999999999,
+      0.0,
+      0.613655729166666,
+      0.10011438950697565,
+      0.40291666666666626,
+      0.0,
+      7.095686081210943,
+      2.0750138888888885,
+      0.9382592234798425,
+      0.0,
+      3.9343954403207713,
+      4.337767057574793,
+      0.046793033854166645,
+      0.035978982742972405,
+      0.0,
+      0.0
+    ],
+    "scale": [
+      1.3607679803051225,
+      1.1803371996503673,
+      1.0,
+      1.0,
+      0.3713401598047996,
+      1.0,
+      0.3545230947438556,
+      0.08472552206372859,
+      0.33502461559646046,
+      1.0,
+      0.11797428694409676,
+      2.372675929119254,
+      0.6598882826819076,
+      1.0,
+      1.527757347180893,
+      1.4377546239296235,
+      0.1385385820195343,
+      0.0861042561371448,
+      1.0,
+      1.0
+    ],
+    "unnormalized_columns": [
+      3,
+      5,
+      9,
+      13,
+      18,
+      19
+    ],
+    "fitted_on": "training points only; all 16 shards per point",
+    "weighting": "equal day, scene within day, point within scene, shard within point"
+  },
+  "coef": [
+    0.3363898377293916,
+    -0.22285769336443767,
+    0.0,
+    0.0,
+    0.09072343185483417,
+    0.0,
+    -0.11229368777071347,
+    -0.009577875760252175,
+    -0.02857657802571649,
+    -0.023765127064539652,
+    0.06994869475409991,
+    0.0,
+    0.0,
+    0.0,
+    -0.2109834316600999,
+    0.18316067599467487,
+    -0.0614763225387786,
+    0.021697365125836938,
+    0.0,
+    -0.020346988340055102
+  ],
+  "target_scale": 0.23382175919458367,
+  "ridge": 0.01,
+  "intercept": false,
+  "model_parameters": 20,
+  "score_units": "d=total original complete-waiting seconds/5000",
+  "score_formula": "target_scale * dot(coef, (raw-mean)/scale)",
+  "tie_tolerance": 1e-06,
+  "tie_order": "first unique candidate in rule order",
+  "target_centering": "within each unique candidate slate",
+  "target_scaling": "one hierarchical-weighted RMS across training centered labels",
+  "objective": "weighted mean squared centered normalized cost error + 0.01 * squared coefficient norm",
+  "candidate_contract": {
+    "feature_order": [
+      "visible_pending_slots",
+      "queue_slots",
+      "queue_receive_age_intervals",
+      "queue_missing",
+      "visible_pending_delta_5s",
+      "pending_history_missing",
+      "last_nonempty_block_fill",
+      "nonempty_service_mean_intervals",
+      "nonempty_commit_receive_age_intervals",
+      "service_missing",
+      "graph_day_log_hour_stage_rate",
+      "graph_source_age_hours",
+      "graph_receive_age_intervals",
+      "graph_missing",
+      "new_origins_20s_log_count",
+      "active_origins_20s_log_count",
+      "assigned_nn_half_stages_5s_slots",
+      "family_concentration_20s",
+      "family_concentration_missing",
+      "previous_pressure_share"
+    ],
+    "candidates": 4,
+    "seed": 43,
+    "first": "original P CDF using original pressure arithmetic",
+    "additional": "counter-hash independent domain; remaining positive probability without replacement",
+    "tie_tolerance_cost_units": 1e-06,
+    "tie_order": "candidate order",
+    "continuation": "one current target forced, every subsequent NN fixed P; complete input and drain",
+    "pressure": "max(queue,assigned-visible_confirmed), missing queue uses unconfirmed",
+    "previous_share": "previous base pressure proportions, never a learned output"
+  },
+  "candidate_contract_sha256": "b0d451a5ee9eb62272d392af7331b0d87841f511ffed0f271c2c2475064ebd56",
+  "source_hashes": {
+    "original_artifact_sha256": "f03d32a81f77f805d5fe0c3c018112ea246abc36c563c5eb7856b81f9b59859b"
+  },
+  "training_records_sha256": "4e7c780d8247db8b3b242a326e0e066781a6156ccac1ed0e51d4d30a34b67fe0",
+  "training": {
+    "points": 480,
+    "days": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "slate_candidates": 1920,
+    "points_by_day_scene": [
+      {
+        "day": 13,
+        "family": "C",
+        "points": 12
+      },
+      {
+        "day": 13,
+        "family": "E",
+        "points": 12
+      },
+      {
+        "day": 13,
+        "family": "L",
+        "points": 12
+      },
+      {
+        "day": 13,
+        "family": "N",
+        "points": 12
+      },
+      {
+        "day": 13,
+        "family": "O",
+        "points": 12
+      },
+      {
+        "day": 14,
+        "family": "C",
+        "points": 12
+      },
+      {
+        "day": 14,
+        "family": "E",
+        "points": 12
+      },
+      {
+        "day": 14,
+        "family": "L",
+        "points": 12
+      },
+      {
+        "day": 14,
+        "family": "N",
+        "points": 12
+      },
+      {
+        "day": 14,
+        "family": "O",
+        "points": 12
+      },
+      {
+        "day": 15,
+        "family": "C",
+        "points": 12
+      },
+      {
+        "day": 15,
+        "family": "E",
+        "points": 12
+      },
+      {
+        "day": 15,
+        "family": "L",
+        "points": 12
+      },
+      {
+        "day": 15,
+        "family": "N",
+        "points": 12
+      },
+      {
+        "day": 15,
+        "family": "O",
+        "points": 12
+      },
+      {
+        "day": 16,
+        "family": "C",
+        "points": 12
+      },
+      {
+        "day": 16,
+        "family": "E",
+        "points": 12
+      },
+      {
+        "day": 16,
+        "family": "L",
+        "points": 12
+      },
+      {
+        "day": 16,
+        "family": "N",
+        "points": 12
+      },
+      {
+        "day": 16,
+        "family": "O",
+        "points": 12
+      },
+      {
+        "day": 17,
+        "family": "C",
+        "points": 12
+      },
+      {
+        "day": 17,
+        "family": "E",
+        "points": 12
+      },
+      {
+        "day": 17,
+        "family": "L",
+        "points": 12
+      },
+      {
+        "day": 17,
+        "family": "N",
+        "points": 12
+      },
+      {
+        "day": 17,
+        "family": "O",
+        "points": 12
+      },
+      {
+        "day": 18,
+        "family": "C",
+        "points": 12
+      },
+      {
+        "day": 18,
+        "family": "E",
+        "points": 12
+      },
+      {
+        "day": 18,
+        "family": "L",
+        "points": 12
+      },
+      {
+        "day": 18,
+        "family": "N",
+        "points": 12
+      },
+      {
+        "day": 18,
+        "family": "O",
+        "points": 12
+      },
+      {
+        "day": 19,
+        "family": "C",
+        "points": 12
+      },
+      {
+        "day": 19,
+        "family": "E",
+        "points": 12
+      },
+      {
+        "day": 19,
+        "family": "L",
+        "points": 12
+      },
+      {
+        "day": 19,
+        "family": "N",
+        "points": 12
+      },
+      {
+        "day": 19,
+        "family": "O",
+        "points": 12
+      },
+      {
+        "day": 20,
+        "family": "C",
+        "points": 12
+      },
+      {
+        "day": 20,
+        "family": "E",
+        "points": 12
+      },
+      {
+        "day": 20,
+        "family": "L",
+        "points": 12
+      },
+      {
+        "day": 20,
+        "family": "N",
+        "points": 12
+      },
+      {
+        "day": 20,
+        "family": "O",
+        "points": 12
+      }
+    ],
+    "informative_points": 430,
+    "maximum_label_spread_d": 11.844266416788102,
+    "raw_centered_target_rms_d": 0.23382175919458367,
+    "normalized_mse": 0.9849314002302941,
+    "penalty": 0.0027275620098462855,
+    "regularized_objective": 0.9876589622401404,
+    "normal_equation_residual": 1.2793585635328952e-17
+  }
+}

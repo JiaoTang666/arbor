@@ -1,0 +1,17 @@
+.venv/
+.tools/
+.build/
+data/
+runs/
+*.egg-info/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.so
+*.exe
+*.tgz
+*.tar.gz
+.env
+release/
+validation/private/

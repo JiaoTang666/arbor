@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arbor-sharding"
+version = "0.1.0"
+description = "Temporal and source-aware account placement for sharded blockchains"
+requires-python = ">=3.12,<3.13"
+license = {text = "MIT"}
+dependencies = ["numpy==2.0.2", "scipy==1.13.1", "PyYAML==6.0.3", "rich==14.1.0", "gymnasium==1.2.1"]
+
+[project.optional-dependencies]
+plots = ["matplotlib==3.9.4"]
+dev = ["pytest==8.3.5", "ruff==0.11.13"]
+
+[project.scripts]
+arbor = "arbor.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"arbor.runtime" = ["*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["native: starts a small local native network"]
+
+[tool.ruff]
+line-length = 100

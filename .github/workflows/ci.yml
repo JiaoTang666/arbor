@@ -1,0 +1,38 @@
+name: build-and-smoke
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.0'
+          cache-dependency-path: native/engine/go.sum
+      - run: ./install.sh
+      - run: .venv/bin/pytest -q
+      - run: .venv/bin/ruff check src tests scripts --select F821,F822,F823
+      - run: .venv/bin/python scripts/check_parity.py
+      - run: go test -p 2 ./supervisor/committee ./build ./core ./chain
+        working-directory: native/engine
+      - run: ./arbor run demo --output runs/ci --cleanup-db --json
+      - run: ./arbor results runs/ci --plot --json
+      - run: ./arbor train fusion --small --output runs/fusion --json
+      - run: ./arbor train admission --small --output runs/admission --json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-results
+          path: |
+            runs/ci/summary.*
+            runs/ci/status.json
+            runs/ci/controller.log
+            runs/ci/figures/
+            runs/fusion/complete.json
+            runs/admission/complete.json

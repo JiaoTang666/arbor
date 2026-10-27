@@ -1,0 +1,3 @@
+method: Arbor
+shards: 16
+inject_tps: 2000

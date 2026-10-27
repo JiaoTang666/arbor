@@ -1,0 +1,9 @@
+metric,value,scope
+decision_count,39151,Full ablation reference run; decision scope in native_cost_audit.json
+decision_fraction_percent,3.9967455174300612,Full ablation reference run; decision scope in native_cost_audit.json
+decision_mean_us,50.73020875584276,Full ablation reference run; decision scope in native_cost_audit.json
+decision_p95_us,98.135,Full ablation reference run; decision scope in native_cost_audit.json
+decision_p99_us,151.997,Full ablation reference run; decision scope in native_cost_audit.json
+observer_cpu_seconds,368.597663,Graph observer process only
+observer_peak_rss_gib,1.8653984069824219,Graph observer process only
+observer_wall_seconds,646.5557608604431,Graph observer process only

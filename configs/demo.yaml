@@ -1,0 +1,14 @@
+# A genuine native smoke run, not a performance benchmark.
+shards: 4
+nodes_per_shard: 4
+inject_tps: 40
+batch_size: 20
+block_size: 100
+interval_ms: 500
+timeout_seconds: 600
+resources:
+  min_available_gib: 2
+  min_data_free_gib: 2
+  min_system_free_gib: 2
+  max_owned_rss_gib: 8
+  runtime_available_floor_gib: 0.5

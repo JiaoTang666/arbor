@@ -1,0 +1,4 @@
+# 3 methods x 4 shard counts x 3 nominal offered loads, one execution per cell.
+batch_size: 1000
+block_size: 1000
+interval_ms: 5000

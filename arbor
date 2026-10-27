@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+if [[ ! -x "$ROOT/.venv/bin/python" ]]; then
+  printf 'Run %s/install.sh first.\n' "$ROOT" >&2
+  exit 2
+fi
+exec "$ROOT/.venv/bin/python" -m arbor "$@"
