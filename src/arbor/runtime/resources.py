@@ -3,6 +3,7 @@ import fcntl
 import json
 import os
 from pathlib import Path
+import random
 import shutil
 import socket
 
@@ -82,13 +83,17 @@ def check_resources(directory, limits, children=(), admission=False):
 
 
 def port_table(shards, nodes):
-    # Kernel-selected base plus a contiguous probe; Go listeners re-use closed TCP endpoints.
+    # Listener ports must not overlap the kernel's outbound ephemeral pool.
+    # Otherwise an already-started node can occupy a later node's port while dialing.
+    ephemeral = tuple(map(int,Path("/proc/sys/net/ipv4/ip_local_port_range").read_text().split()))
+    width = shards*nodes+1
+    ranges = [(10240,ephemeral[0]-1),(ephemeral[1]+1,65535)]
+    bases = [base for low,high in ranges for base in range(max(10240,low), high-width+2)]
+    if not bases:
+        raise RuntimeError("no non-ephemeral port block available")
+    rng = random.SystemRandom()
     for _ in range(100):
-        with socket.socket() as probe:
-            probe.bind(("127.0.0.1", 0))
-            base = probe.getsockname()[1]
-        if base+shards*nodes >= 65535:
-            continue
+        base = rng.choice(bases)
         table = {str(s): {str(n): f"127.0.0.1:{base+s*nodes+n}" for n in range(nodes)} for s in range(shards)}
         table["2147483647"] = {"0": f"127.0.0.1:{base+shards*nodes}"}
         try:

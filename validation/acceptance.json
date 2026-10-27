@@ -1,0 +1,49 @@
+{
+  "clean_demo": {
+    "completed": 3,
+    "transactions_per_case": [
+      120,
+      120,
+      120
+    ],
+    "all_complete": true,
+    "cleanup": true,
+    "same_binary": true
+  },
+  "ablation_validation_v2": {
+    "completed": 5,
+    "transactions_per_case": [
+      120,
+      120,
+      120,
+      120,
+      120
+    ],
+    "all_complete": true,
+    "cleanup": true,
+    "same_binary": true
+  },
+  "training": {
+    "fusion": "PASS",
+    "admission": "PASS"
+  },
+  "pytest": {
+    "passed": 25
+  },
+  "python_go_parity": {
+    "cases": 32,
+    "status": "PASS"
+  },
+  "environment": {
+    "os": "Linux",
+    "python": "3.12",
+    "clean_inherited_environment": true,
+    "fresh_go_dependency_cache": true,
+    "explicit_go_proxy": "https://goproxy.cn,direct"
+  },
+  "regression": {
+    "ephemeral_listener_collision": "fixed; failed software fixture preserved outside publication",
+    "completed_resume": "no new native cases",
+    "detached_queue": "completed after SSH launcher exited"
+  }
+}

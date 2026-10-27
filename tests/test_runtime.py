@@ -9,7 +9,7 @@ import pytest
 from arbor.config import cases, resolve
 from arbor.io import load, save
 from arbor.runtime.metrics import collect
-from arbor.runtime.resources import RunLock, check_ports
+from arbor.runtime.resources import RunLock, check_ports, port_table
 from arbor.runtime.worker import REMOVED_ENV, clean_environment
 from arbor.runtime.queue import retain_and_cleanup
 
@@ -37,6 +37,14 @@ def test_lock_and_live_listener_are_rejected(tmp_path):
         listener.bind(("127.0.0.1",0)); listener.listen()
         with pytest.raises(OSError):
             check_ports({"0":{"0":f"127.0.0.1:{listener.getsockname()[1]}"}})
+
+
+def test_listener_ports_do_not_compete_with_outbound_ephemeral_pool():
+    low,high=map(int,Path("/proc/sys/net/ipv4/ip_local_port_range").read_text().split())
+    table=port_table(16,4)
+    ports=[int(a.rsplit(":",1)[1]) for row in table.values() for a in row.values()]
+    assert len(ports)==65 and len(set(ports))==65
+    assert all(not low <= port <= high for port in ports)
 
 
 def test_full_latency_and_stage_conservation(tmp_path):

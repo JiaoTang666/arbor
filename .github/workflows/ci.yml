@@ -23,6 +23,7 @@ jobs:
         working-directory: native/engine
       - run: ./arbor run demo --output runs/ci --cleanup-db --json
       - run: ./arbor results runs/ci --plot --json
+      - run: ./arbor run ablation --config configs/demo.yaml --dataset data/demo --output runs/ablation --cleanup-db --json
       - run: ./arbor train fusion --small --output runs/fusion --json
       - run: ./arbor train admission --small --output runs/admission --json
       - uses: actions/upload-artifact@v4
@@ -34,5 +35,8 @@ jobs:
             runs/ci/status.json
             runs/ci/controller.log
             runs/ci/figures/
+            runs/ablation/summary.*
+            runs/ablation/status.json
+            runs/ablation/controller.log
             runs/fusion/complete.json
             runs/admission/complete.json

@@ -24,6 +24,8 @@ def extract(archive, destination):
 
 def fetch(manifest_path, destination):
     manifest = load(manifest_path)
+    if Path(manifest["asset"]).name != manifest["asset"]:
+        raise ValueError("dataset asset must be a plain filename")
     destination = Path(destination).resolve()
     if destination.exists():
         result = verify(destination)
