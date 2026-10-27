@@ -38,5 +38,11 @@ jobs:
             runs/ablation/summary.*
             runs/ablation/status.json
             runs/ablation/controller.log
+            runs/ablation/failure.json
+            runs/ablation/cases/**/timeout_processes.json
+            runs/ablation/cases/**/native/**/*.log
+            runs/ablation/cases/**/native/gate/*.json
+            runs/ablation/cases/**/native/observer_result.json
+            runs/ablation/cases/**/native/forest/result.json
             runs/fusion/complete.json
             runs/admission/complete.json

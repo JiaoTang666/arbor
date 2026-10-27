@@ -10,6 +10,8 @@ Arbor combines a temporal account graph, an entry forest and incremental admissi
 
 Linux or WSL2, Ubuntu 24.04 recommended; Python **3.12**, a C++17 compiler, and Go **1.22 or later**. If Go is absent on Linux x86_64, the installer downloads the pinned Go 1.22.0 toolchain into `.tools/`. Nothing is installed globally.
 
+During the private preview, obtain repository access and run `gh auth login` followed by `gh auth setup-git` before cloning. Install [GitHub CLI](https://cli.github.com/) if it is not already available.
+
 ```bash
 sudo apt-get update
 sudo apt-get install -y python3.12 python3.12-venv g++ git

@@ -8,6 +8,8 @@
 
 支持 Linux／WSL2，推荐 Ubuntu 24.04，需要 Python **3.12**、C++17 编译器和 Go **1.22+**。Linux x86_64 缺少 Go 时，安装器将校验后的固定工具链放入仓库 `.tools/`，不修改系统环境。
 
+私有预览期间，请先取得仓库访问权限，安装 [GitHub CLI](https://cli.github.com/)，并执行 `gh auth login` 和 `gh auth setup-git`，再克隆仓库。
+
 ```bash
 sudo apt-get update
 sudo apt-get install -y python3.12 python3.12-venv g++ git

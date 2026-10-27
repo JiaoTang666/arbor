@@ -104,6 +104,7 @@ def execute(target, case, dataset, layout, progress):
         nonlocal next_check, progress_stream
         now = time.monotonic()
         if now-begun > case["timeout_seconds"]:
+            save(target/"timeout_processes.json", [dict(pid=p.pid, command=p.args, returncode=p.poll()) for p in children])
             raise TimeoutError("native execution deadline")
         failed = [p for p in children if p.poll() not in (None, 0)]
         if failed:
