@@ -1,0 +1,29 @@
+{
+  "schema": "arbor_paper_window_v1",
+  "collection": "XBlock Block Transaction",
+  "catalog": "https://xblock.pro/xblock-eth.html",
+  "archive": "18750000to18999999_BlockTransaction.zip",
+  "archive_url": "https://zhengpeilin.com/download.php?file=18750000to18999999_BlockTransaction.zip",
+  "history": {
+    "accepted": 8840117,
+    "export_rows": 9000000,
+    "filtered_negative_amount": 159883,
+    "export_sha256": "2e9b7c575d0705027f6a99c6daf10ebc5364d0d9eb8ca47ebce8b9679f827e2e",
+    "canonical_sha256": "3837725d201f58b7de738149d283e0a02702a522afda36624f783730b7f32969",
+    "first_block": 18750000,
+    "last_block": 18919698,
+    "first_hash": "0xdd2bf27f34b513db16df01c41be47c178632ba73082c3fd2ff7e18d1cb40cfb7",
+    "last_hash": "0xaa1d11c4d6d7cd1076e2610de9e30f93d64919afe5a1ae58634f4add297fbc6f"
+  },
+  "test": {
+    "accepted": 979572,
+    "evaluation_export_prefix_rows": 1000000,
+    "canonical_sha256": "a09949047e1c10b3cd304acec350859526880b6128a68b30c630c8a3d875d339",
+    "first_block": 18919698,
+    "last_block": 18940083,
+    "first_hash": "0xd674f9a9b53562d9a3d03047c42052ff834445dabc995c1df6d402abc7ff73eb",
+    "last_hash": "0xc5f8300757d399a5f5e658cf2e1a9af67018681881f5707fa37f615266ad0685"
+  },
+  "reproduction_entry": "arbor data paper",
+  "source_row_mapping": "Pinned release rows identify canonical exports. Original per-row archive positions were not retained by the historical export. New xblock imports preserve source_file/source_row arrays."
+}

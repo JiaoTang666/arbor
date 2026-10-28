@@ -1,13 +1,16 @@
 """Ordered Block Transaction ingestion; amounts never pass through floating point."""
 from array import array
 from collections import Counter
+from contextlib import ExitStack
 import csv
 from pathlib import Path
 import re
+import shutil
 
 import numpy as np
 
 from .io import load, save, sha
+from .cache import signature
 
 ADDRESS = re.compile(r"^(?:0x)?([0-9a-f]{40})$")
 INTEGER = re.compile(r"^[+-]?\d+$")
@@ -48,13 +51,21 @@ def ingest(history, test, output, *, history_raw_limit=None, test_raw_limit=None
         directory.mkdir()
         columns = {k: array("q") for k in ("sender", "recipient", "timestamp", "raw_row")}
         kinds, rejected, accepted, raw_count = Counter(), Counter(), 0, 0
-        with Path(source).open(newline="", encoding="utf-8-sig") as stream, \
-                (directory/"input.csv").open("w", newline="", encoding="utf-8") as dest:
+        origin = Path(source).with_suffix(".origin.csv")
+        if origin.exists():
+            columns.update(source_file=array("q"), source_row=array("q"))
+        with ExitStack() as stack:
+            stream = stack.enter_context(Path(source).open(newline="", encoding="utf-8-sig"))
+            dest = stack.enter_context((directory/"input.csv").open("w", newline="", encoding="utf-8"))
+            origin_rows = csv.reader(stack.enter_context(origin.open(newline=""))) if origin.exists() else None
             writer = csv.writer(dest, lineterminator="\r\n")
             for raw, row in enumerate(csv.reader(stream)):
                 if limit is not None and raw >= limit:
                     break
                 raw_count += 1
+                original = next(origin_rows, None) if origin_rows is not None else None
+                if origin_rows is not None and (original is None or len(original) != 2):
+                    raise ValueError("source provenance sidecar does not match input rows")
                 value, reason = parse(row)
                 if reason:
                     rejected[reason] += 1
@@ -79,8 +90,11 @@ def ingest(history, test, output, *, history_raw_limit=None, test_raw_limit=None
                 if split == "history" and kind == 1:
                     p, child = (u, v) if old_a else (v, u)
                     parent[child], roots[child], depth[child] = p, roots[p], depth[p]+1
-                for key, item in zip(columns, (u, v, at, raw)):
+                for key, item in zip(("sender", "recipient", "timestamp", "raw_row"), (u, v, at, raw)):
                     columns[key].append(item)
+                if original is not None:
+                    columns["source_file"].append(int(original[0]))
+                    columns["source_row"].append(int(original[1]))
                 # Preserve every other source field, including the transaction hash.
                 row[3], row[4], row[8] = "0x"+a, "0x"+b, amount
                 writer.writerow(row)
@@ -95,25 +109,58 @@ def ingest(history, test, output, *, history_raw_limit=None, test_raw_limit=None
                              raw_limit=limit, first_timestamp=columns["timestamp"][0],
                              last_timestamp=columns["timestamp"][-1], entry_classes=dict(kinds),
                              accounts=len(names))
+        reports[split]["row_index_scope"] = "input CSV, zero-based"
+        if origin.exists():
+            reports[split]["original_row_scope"] = "source_manifest sources index and one-based archive data row"
         if split == "history":
             np.savez(output/"entry_forest.npz", parent=np.asarray(parent), root=np.asarray(roots),
                      first_sequence=np.asarray(first), first_timestamp=np.asarray(birth), depth=np.asarray(depth))
             np.save(output/"addresses.npy", np.asarray(names, dtype="S40"))
     reports["schema"] = "arbor_dataset_v1"
     reports["test_new_accounts"] = len(names)-reports["history"]["accounts"]
+    source_manifest = Path(history).parent/"source_manifest.json"
+    if source_manifest.exists() and Path(history).parent == Path(test).parent:
+        shutil.copyfile(source_manifest, output/"source_manifest.json")
     reports["files"] = {str(p.relative_to(output)): sha(p) for p in sorted(output.rglob("*")) if p.is_file()}
     save(output/"manifest.json", reports)
     return output
 
 
-def verify(directory):
+def verify(directory, receipt=None):
     directory = Path(directory).resolve()
     manifest = load(directory/"manifest.json")
+    if receipt is not None:
+        record = load(receipt) if isinstance(receipt, (str, Path)) else receipt
+        if record["directory"] != str(directory) or record["manifest_sha256"] != sha(directory/"manifest.json"):
+            raise ValueError("verified dataset identity changed")
+        if record["stats"] != dataset_stats(directory, manifest):
+            raise ValueError("dataset changed during this run; verify it in a new run")
+        return manifest
+    before = dataset_stats(directory, manifest)
     for name, expected in manifest["files"].items():
         path = (directory/name).resolve()
         if not path.is_relative_to(directory) or not path.is_file() or sha(path) != expected:
             raise ValueError(f"dataset member mismatch: {name}")
+    if dataset_stats(directory, manifest) != before:
+        raise ValueError("dataset changed during verification")
     return manifest
+
+
+def dataset_stats(directory, manifest):
+    directory = Path(directory).resolve()
+    result = {}
+    for name in manifest["files"]:
+        path = directory/name
+        if not path.resolve().is_relative_to(directory) or path.is_symlink():
+            raise ValueError("unsafe dataset member: "+name)
+        result[name] = signature(path)
+    return result
+
+
+def verification_receipt(directory, manifest):
+    directory = Path(directory).resolve()
+    return dict(directory=str(directory), manifest_sha256=sha(directory/"manifest.json"),
+                stats=dataset_stats(directory, manifest))
 
 
 def make_demo(directory):

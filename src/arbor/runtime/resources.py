@@ -36,6 +36,10 @@ def birth(pid):
         return None
 
 
+def alive(identity):
+    return identity.get("birth_ticks") is not None and birth(identity["pid"]) == identity["birth_ticks"]
+
+
 def tree_rss(pid):
     """RSS sum of a preparation process and its descendants (not physical memory)."""
     seen, pending, total = set(), [pid], 0

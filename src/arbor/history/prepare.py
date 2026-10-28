@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 
 from arbor.data import verify
+from arbor.cache import cached_directory, producer
 from arbor.forest.source import SourceForest
 from arbor.io import load, save, sha
 from .representation import aggregate_graph, temporal_profiles
@@ -11,16 +12,18 @@ from .relations import cohort_credit
 ONLINE_HALF = (21600, 86400, 604800)
 
 
-def prepare(dataset):
+def prepare(dataset, receipt=None):
     dataset = Path(dataset)
     output = dataset/"prepared"
-    manifest = verify(dataset)
-    identity = sha(dataset/"manifest.json")
-    if (output/"complete.json").exists():
-        if load(output/"complete.json")["dataset_sha256"] != identity:
-            raise ValueError("prepared dataset identity changed")
-        return output
-    output.mkdir(exist_ok=False)
+    manifest = verify(dataset, receipt)
+    identity = dict(dataset_sha256=sha(dataset/"manifest.json"), half_seconds=ONLINE_HALF,
+                    producer=producer("src/arbor/history/prepare.py", "src/arbor/history/representation.py",
+                                      "src/arbor/history/relations.py", "src/arbor/forest/source.py",
+                                      "src/arbor/cache.py", "src/arbor/io.py"))
+    return cached_directory(output, identity, lambda staging: _prepare(dataset, staging, manifest))
+
+
+def _prepare(dataset, output, manifest):
     u, v, t = [np.load(dataset/"history"/(x+".npy"), mmap_mode="r")
                for x in ("sender", "recipient", "timestamp")]
     n = manifest["history"]["accounts"]
@@ -43,13 +46,12 @@ def prepare(dataset):
     for i, (a, b, at) in enumerate(zip(u, v, t)):
         source.observe(a, b, at, i)
     source.save(output/"forest_seed")
-    save(output/"complete.json", dict(dataset_sha256=identity, accepted=len(t), accounts=n))
-    return output
+    return dict(accepted=len(t), accounts=n)
 
 
-def load_history(dataset, kernel):
+def load_history(dataset, kernel, prepared=None):
     dataset = Path(dataset)
-    prepared = prepare(dataset)
+    prepared = Path(prepared) if prepared is not None else prepare(dataset)
     u, v, t = [np.load(dataset/"history"/(x+".npy"), mmap_mode="r")
                for x in ("sender", "recipient", "timestamp")]
     forest = dict(np.load(dataset/"entry_forest.npz"))

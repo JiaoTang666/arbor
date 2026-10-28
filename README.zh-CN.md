@@ -1,14 +1,20 @@
 # Arbor
 
-**结合时间账户图与入口森林的区块链分片账户分配。**
+**面向分片区块链的时间与来源感知账户分配。**
 
-仓库提供模块化方法实现、原生执行引擎、冻结模型、数据处理、训练与论文实验配方。[English](README.md)
+Arbor结合时间账户图、入口森林和增量接入，在关联账户共置的同时分散关联需求。仓库提供Arbor、Monoxide和动态CLPA，包含原生PBFT执行引擎、冻结模型，以及贯穿数据准备、训练、运行和分析的统一CLI。
 
-## 两条命令跑通示例
+[English](README.md) · [实验配方](docs/experiments.md) · [数据与模型](docs/data-models.md) · [模块结构](docs/architecture.md) · [运行管理](docs/running.md)
 
-支持 Linux／WSL2，推荐 Ubuntu 24.04，需要 Python **3.12**、C++17 编译器和 Go **1.22+**。Linux x86_64 缺少 Go 时，安装器将校验后的固定工具链放入仓库 `.tools/`，不修改系统环境。
+在**12个匹配的分片数与负载配置**下，Arbor平均完整延迟相对Monoxide降低 **64.61%–94.83%**，相对CLPA降低 **74.21%–98.09%**，完整TPS在所有配置中均更高。
 
-私有预览期间，请先取得仓库访问权限，安装 [GitHub CLI](https://cli.github.com/)，并执行 `gh auth login` 和 `gh auth setup-git`，再克隆仓库。
+![分片拓展与负载响应](docs/assets/scale.png)
+
+*论文参考结果：4／8／12／16片，50%／75%／100%注入负载，每个配置测量一次；延迟采用对数轴。[数据](reference/scale_load.csv) · [绘图脚本](scripts/render_readme.py)。*
+
+## 跑通示例
+
+支持Linux／WSL2，推荐Ubuntu 24.04；需要Python 3.12和C++17编译器。安装器使用已有Go 1.22+，缺少时在本地下载Go 1.22.0。
 
 ```bash
 sudo apt-get update
@@ -19,76 +25,78 @@ cd arbor
 ./arbor run demo
 ```
 
-示例自动生成历史与测试数据，构建账户图、入口森林、初始布局，再串行执行 Arbor、Monoxide、动态 CLPA。每种方法使用真实 PBFT 节点完成 120 笔交易，覆盖已知账户、伙伴跟随与联合接入。示例用于验证软件流程，不作为论文性能结果。
+示例自动准备合成历史、账户图、入口森林和布局，在本机原生节点上完成**每种方法120笔交易**。安装后运行约需一分钟，实际耗时随主机变化。
 
-终端显示配置、阶段、接入／完成数量、耗时和最终性能表。原生日志写入运行目录。Ctrl+C 退出显示后，服务器队列继续运行，不依赖浏览器或 Windows 开机。
+![Arbor命令行](docs/assets/cli.svg)
 
-## 论文复现
+终端展示当前组、运行阶段、交易进度和最终性能表。Ctrl+C退出显示后，队列继续在后台运行。
+
+## 复现论文实验
 
 ```bash
 ./arbor data paper
-./arbor run full
-./arbor run ablation --cleanup-db
-./arbor run halflife --cleanup-db
-./arbor run group-size --cleanup-db
-./arbor run tolerance --cleanup-db
 ./arbor run scale --cleanup-db
+./arbor results runs/<run-id> --plot
 ```
 
-当前仓库和数据发布为私有。获授权的复现者使用 GitHub CLI 正常登录（`gh auth login`）后下载；程序不读取浏览器凭据。下载包与解包成员均检查 SHA256，大数据不进入 Git。
-
-| 命令 | 运行内容 |
+| 命令 | 实验 |
 |---|---|
-| `full` | 单次 Arbor，16 片、2,000 笔/秒 |
-| `ablation` | 完整方法与四个正式组件消融，共 5 组 |
-| `halflife` | 历史半衰期 3×3×3 网格，共 27 组 |
-| `group-size` | 分组上限 16／32／64 |
-| `tolerance` | 负担容忍度 1.05／1.10／1.20 |
-| `scale` | 三种方法 × 4／8／12／16 片 × 50／75／100% 负载，共 36 组 |
+| `./arbor run full` | Arbor单次运行：16片、2,000笔／秒 |
+| `./arbor run ablation` | Arbor与四项组件消融 |
+| `./arbor run halflife` | 27组历史半衰期组合 |
+| `./arbor run group-size` | 分组上限16／32／64 |
+| `./arbor run tolerance` | 负担容忍度1.05／1.10／1.20 |
+| `./arbor run scale` | 三种方法×四种分片数×三档负载 |
 
-论文默认历史尺度 **6h／48h／3.5d**、分组 **64**、容忍度 **1.10**。在线时间核仍为 **6h／24h／7d**。每片 4 节点，批量／区块容量 1,000，间隔 5 秒；100% 名义注入负载为 `200 × 分片数` 笔原始交易/秒。三种方法使用同一个新构建的执行引擎。实验语义与参考数据见 [实验说明](docs/experiments.md)。
+论文数据包含 **8,840,117笔历史交易和979,572笔测试交易**。Arbor历史半衰期为 **6h／48h／3.5d**，分组上限 **64**，负担容忍度 **1.10**；在线关系核为 **6h／24h／7d**。每片4节点、区块容量1,000、区块间隔5秒；100%名义注入负载为`200×分片数`笔原始交易／秒。
+
+[`reference/`](reference/)提供论文参考表，新运行结果保存在`runs/`。完整TPS包含注入与排空时间；平均／P95／P99完整延迟从计划释放开始，统计至全部必要阶段完成。
 
 ## 配置与运行管理
 
 ```bash
 ./arbor run full --method Monoxide --shards 8 --rate 1200 --dry-run
-./arbor run full --config my-run.yaml --detach
-./arbor doctor
-./arbor status runs/<运行编号>
-./arbor resume runs/<运行编号>
-./arbor results runs/<运行编号> --plot
+./arbor run full --config configs/small.yaml --dataset data/demo
+./arbor run scale --config my-run.yaml --detach
+./arbor status runs/<run-id>
+./arbor pause runs/<run-id>
+./arbor resume runs/<run-id>
+./arbor stop runs/<run-id>
 ```
 
-参数优先级为命令行、YAML、默认值。`--dry-run` 展示任务及生效配置，不启动节点；单组覆盖使用 `full`，矩阵配方按自身网格展开。`--json`、`--no-color` 适合脚本和非交互终端。
+配置优先级为CLI、YAML、配方默认值；嵌套资源设置逐项合并。`--dry-run`展示实际任务清单。`pause`让当前组完成后暂停；`stop`停止本次运行的进程并保留文件；`resume`跳过完成组，补做中断的结果保存和清理。交易执行中断后，可检查现场并在新运行目录中重试。
 
-**默认保留数据库。** `--keep-db` 与 `--cleanup-db` 互斥。只有当前组成功完成、进程退出、两份服务器结果小包核验通过后，显式清理才删除本组数据库与原生大日志。输入、共享布局、旧结果和失败现场保留；两份目录副本位于同一服务器。
+**默认保留数据库。** 添加`--cleanup-db`后，成功组在结果保存完成后清理数据库与原生日志；失败组保留。`--json`便于脚本调用，`--no-color`关闭颜色。
 
-每个运行目录只允许一个控制器。续跑跳过完成组，接续未启动组；失败或中断的原生组不会自动重跑。确认需要重试时，检查失败原因并显式新建运行。运行状态、完整配置、环境与构建标识保存在目录中。
+| 配置 | 使用范围 | 启动前可用内存／磁盘余量 |
+|---|---|---|
+| `demo`、`configs/small.yaml` | 120笔合成交易示例 | 2 GiB／2 GiB |
+| 论文配方 | 完整论文数据与原生矩阵 | 300 GiB／数据盘70 GiB、系统盘100 GiB |
 
-结果包括 `summary.json/CSV`、逐组 `performance.json`、配置、进程退出和清理回执；`--plot` 生成矢量 PDF、PNG 与灰度预览。完成延迟从计划释放计时，TPS 包含注入及排空，P95/P99、跨片率、排空、逐片工作一并保留。每组要求全输入完成、未完成为零和阶段守恒。
+论文预设对应原实验主机，可通过YAML的`resources`按数据规模和机器配置调整；小样例配置可直接运行。[`doctor`](docs/running.md)显示主机资源，每组结果记录采样进程RSS，离线准备使用8 GiB RSS保护。
 
-## 数据与训练
+## 训练与使用模型
+
+实验默认使用冻结模型，训练和模型选择均通过显式命令完成：
 
 ```bash
-./arbor train fusion --small
-./arbor train admission --small
-./arbor train fusion --dataset data/paper
-./arbor train admission --dataset data/paper
+./arbor train fusion --small --output runs/fusion
+./arbor train admission --small --output runs/admission
+./arbor run full --config configs/small.yaml --dataset data/demo \
+  --fusion-model runs/fusion/model.json --admission-model runs/admission/model.json
 ```
 
-训练从历史前缀生成样本，再拟合导出；小样例用于软件验收。正常实验始终使用冻结模型，不隐式训练，也不覆盖模型。原始 XBlock 清洗、切分、字段与模型来源见 [数据说明](docs/data-models.md)。
+完整训练将`--small`换为`--dataset data/paper`。每次运行保存所选模型的快照。[数据与训练文档](docs/data-models.md)介绍自定义输入、数据窗口与时序训练流程。
 
-## 资源与常见问题
+## 开发
 
-示例准入为 2 GiB 可用内存和数据／系统盘各 2 GiB 余量。论文配方沿用 300 GiB 可用内存、数据盘 70 GiB、系统盘 100 GiB 余量，离线准备受 8 GiB RSS 保护。这些是可配置准入值，不代表实测最低硬件要求。运行器每 5 秒检查资源，只管理自身子进程。较小数据可通过 YAML 的 `resources` 配置更小限额。
+```bash
+.venv/bin/pytest -q
+.venv/bin/python scripts/check_parity.py
+```
 
-运行时清除父环境中的 `GOMAXPROCS`、`GOMEMLIMIT`、`BLOCK_EMULATOR_STATE_DB_TABLE_MB`，避免环境漂移；数据库缓存／句柄／Trie 缓存保持 128 MiB／256／64 MiB。
+Python模块位于`src/arbor`，Go／C++内核位于`native`，实验差异由`configs`配方表达。CI验证构建、单元测试、三方法运行、五项消融、跨语言模型一致性、绘图及训练模型的原生执行。
 
-- 缺少虚拟环境模块：安装 `python3.12-venv`。
-- Go 默认依赖站点超时：使用自己的网络代理，或执行 `GOPROXY=https://goproxy.cn,direct ./install.sh`；依赖校验保持开启。
-- 下载无权限：检查 `gh auth status` 和私有仓库权限。
-- 资源不足：查看 `doctor` 和配置；程序不会静默减少规模。
-- 端口冲突：检查占用归属，不终止其他任务。
-- 断开终端：先用 `status` 查看，控制器仍在运行时不要重新启动。
+代码采用MIT许可，保留[BlockEmulator与依赖声明](THIRD_PARTY_NOTICES.md)；数据遵循原来源条款。引用信息见[`CITATION.cff`](CITATION.cff)。
 
-验证命令、模块关系、许可与上游声明分别见 [架构说明](docs/architecture.md)、[MIT LICENSE](LICENSE) 和 [第三方声明](THIRD_PARTY_NOTICES.md)。
+**预览访问：**当前仓库为私有，协作者需获得访问权限并执行`gh auth login`，克隆前执行`gh auth setup-git`。数据优先通过HTTPS下载，私有资产使用GitHub CLI鉴权。

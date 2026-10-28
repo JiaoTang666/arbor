@@ -64,8 +64,8 @@ def configure(target, case, dataset, layout):
                    SAA_ATTRIBUTION_INDEPENDENT_NEW_V1="false", SAA_NEWNEW_POLICY="cost_ranker_v1",
                    SAA_NEWNEW_COMPENSATION_V1="true", SAA_NEWNEW_CUMULATIVE_LAYOUT_V1="true",
                    SAA_NEWNEW_PRIOR_PATH=str(run/"prior_latest.json"), SAA_NEWNEW_SOURCE_TIME_PATH=str(clock),
-                   SAA_NEWNEW_SOURCE_TIME_SHA256=clock_sha, SAA_NEWNEW_MODEL_PATH=str(root()/"models/admission.json"),
-                   SAA_NEWNEW_MODEL_SHA256=sha(root()/"models/admission.json"),
+                   SAA_NEWNEW_SOURCE_TIME_SHA256=clock_sha, SAA_NEWNEW_MODEL_PATH=str(case.get("admission_model", root()/"models/admission.json")),
+                   SAA_NEWNEW_MODEL_SHA256=sha(case.get("admission_model", root()/"models/admission.json")),
                    SAA_SHARE_RANDOM_CONTEXT="native-contiguous10m-v1", SAA_SHARE_RANDOM_SEED="43",
                    SAA_OWNERSHIP_SECURITY_V1="false", SAA_LIVE_PLAN_URL="", SAA_FOREST_FACTS_V2="true",
                    SAA_FOREST_SEED_MANIFEST=str(run/"forest/seed/manifest.json"),
@@ -81,8 +81,8 @@ def configure(target, case, dataset, layout):
     return run, env, total
 
 
-def execute(target, case, dataset, layout, progress):
-    binary, _ = ensure_build()
+def execute(target, case, dataset, layout, progress, build=None):
+    binary, _ = build or ensure_build()
     run, settings, total = configure(target, case, dataset, layout)
     check_ports(load(run/"ipTable.json"))
     env = clean_environment(settings)
@@ -92,6 +92,7 @@ def execute(target, case, dataset, layout, progress):
     progress_stream, released = None, False
     accepted, completed = set(), set()
     begun, next_check = time.monotonic(), 0
+    peak_rss = 0.
     def spawn(command, name):
         log = (run/name).open("xb")
         logs.append(log)
@@ -101,7 +102,7 @@ def execute(target, case, dataset, layout, progress):
         save(target/"owned_processes.json", [dict(pid=p.pid, birth_ticks=birth(p.pid), command=p.args) for p in children])
         return process
     def check():
-        nonlocal next_check, progress_stream
+        nonlocal next_check, progress_stream, peak_rss
         now = time.monotonic()
         if now-begun > case["timeout_seconds"]:
             save(target/"timeout_processes.json", [dict(pid=p.pid, command=p.args, returncode=p.poll()) for p in children])
@@ -118,6 +119,7 @@ def execute(target, case, dataset, layout, progress):
             raise RuntimeError(f"child {failed[0].pid} exited {failed[0].returncode}; see native logs")
         if now >= next_check:
             state = check_resources(target, case["resources"], children)
+            peak_rss = max(peak_rss, state["owned_rss_gib"])
             state.update(unix=time.time(), elapsed_seconds=now-begun)
             save(target/"resources.json", state)
             if released:
@@ -170,7 +172,7 @@ def execute(target, case, dataset, layout, progress):
                 raise ValueError("runtime process inherited a forbidden override")
             actual.append(dict(pid=child.pid, birth_ticks=birth(child.pid), overrides_absent=True))
         save(target/"launch_environment.json", dict(processes=actual, cpu_affinity=sorted(os.sched_getaffinity(0)),
-             settings=settings, binary_sha256=sha(binary), input_sha256=sha(Path(dataset)/"test/input.csv")))
+             settings=settings, binary_sha256=sha(binary), input_sha256=load(Path(dataset)/"manifest.json")["test"]["input_sha256"]))
         at = datetime.now(timezone.utc)
         save(run/"gate/release.json", dict(binding=ready["binding"], issued_at=at.isoformat(),
                                            expires_at=(at+timedelta(seconds=30)).isoformat()))
@@ -183,14 +185,15 @@ def execute(target, case, dataset, layout, progress):
         save(target/"process_exit.json", dict(status="PASS", returncodes={str(p.pid): p.returncode for p in children}))
         progress("STATISTICS", expected=total)
         metrics = collect(run, case, total)
+        metrics["peak_sampled_owned_rss_gib"] = peak_rss
         if case["method"] == "Arbor":
             for key, path in (("graph_maintenance", "observer_result.json"), ("forest_maintenance", "forest/result.json")):
                 row = load(run/path)
                 if row["status"] != "PASS" or row["processed"] != total:
                     raise ValueError("required companion did not consume the entire input")
                 metrics[key] = {k: v for k, v in row.items() if k != "final"}
-        metrics.update(binary_sha256=sha(binary), input_sha256=sha(Path(dataset)/"test/input.csv"),
-                       model_sha256=sha(root()/"models/admission.json") if case["method"] == "Arbor" else None)
+        metrics.update(binary_sha256=sha(binary), input_sha256=load(Path(dataset)/"manifest.json")["test"]["input_sha256"],
+                       model_sha256=sha(case.get("admission_model", root()/"models/admission.json")) if case["method"] == "Arbor" else None)
         save(target/"performance.json", metrics)
         return metrics
     except BaseException:

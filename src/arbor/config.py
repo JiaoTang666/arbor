@@ -1,6 +1,7 @@
 """One configuration resolver for single runs and experiment recipes."""
 from copy import deepcopy
 import itertools
+import math
 from pathlib import Path
 import random
 
@@ -12,6 +13,8 @@ DEFAULTS = dict(method="Arbor", shards=16, nodes_per_shard=4, inject_tps=2000,
                 batch_size=1000, block_size=1000, interval_ms=5000,
                 half_seconds=[21600, 172800, 302400], group_size=64, tolerance=1.10,
                 ablation="Full", timeout_seconds=14400, keep_db=True,
+                fusion_model=str(root()/"models/fusion.json"),
+                admission_model=str(root()/"models/admission.json"),
                 resources=dict(min_available_gib=300, min_data_free_gib=70,
                                min_system_free_gib=100, max_owned_rss_gib=400,
                                runtime_available_floor_gib=8, offline_rss_gib=8))
@@ -22,22 +25,28 @@ def resolve(recipe, config_file=None, overrides=None):
     if recipe not in RECIPES:
         raise ValueError("unknown recipe: "+recipe)
     config = deepcopy(DEFAULTS)
-    supplied = yaml.safe_load((root()/"configs"/(recipe+".yaml")).read_text()) or {}
+    layers = [yaml.safe_load((root()/"configs"/(recipe+".yaml")).read_text()) or {}]
     if config_file:
-        supplied.update(yaml.safe_load(Path(config_file).read_text()) or {})
-    supplied.update({k: v for k, v in (overrides or {}).items() if v is not None})
-    unknown = set(supplied)-set(DEFAULTS)-{"dataset"}
-    if unknown:
-        raise ValueError("unknown configuration keys: "+", ".join(sorted(unknown)))
-    resources = supplied.pop("resources", {})
-    if set(resources)-set(DEFAULTS["resources"]):
-        raise ValueError("unknown resource keys")
-    if any(not isinstance(v,(int,float)) or isinstance(v,bool) or v < 0 for v in resources.values()):
-        raise ValueError("resource limits must be nonnegative numbers")
-    config.update(supplied)
-    config["resources"].update(resources)
+        layers.append(yaml.safe_load(Path(config_file).read_text()) or {})
+    layers.append({k: v for k, v in (overrides or {}).items() if v is not None})
+    for supplied in layers:
+        if not isinstance(supplied, dict):
+            raise ValueError("configuration must be a mapping")
+        unknown = set(supplied)-set(DEFAULTS)-{"dataset"}
+        if unknown:
+            raise ValueError("unknown configuration keys: "+", ".join(sorted(unknown)))
+        resources = supplied.get("resources", {})
+        if not isinstance(resources, dict) or set(resources)-set(DEFAULTS["resources"]):
+            raise ValueError("unknown resource keys")
+        if any(not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(v) or v < 0
+               for v in resources.values()):
+            raise ValueError("resource limits must be finite nonnegative numbers")
+        config.update({k: v for k, v in supplied.items() if k != "resources"})
+        config["resources"].update(resources)
     config["recipe"] = recipe
     config["dataset"] = str(Path(config.get("dataset", root()/"data"/("demo" if recipe == "demo" else "paper"))).resolve())
+    for name in ("fusion_model", "admission_model"):
+        config[name] = str(Path(config[name]).expanduser().resolve())
     if config["method"] not in ("Arbor", "Monoxide", "CLPA"):
         raise ValueError("method must be Arbor, Monoxide or CLPA")
     for field in ("shards", "nodes_per_shard", "inject_tps", "batch_size", "block_size", "interval_ms", "group_size", "timeout_seconds"):
@@ -45,9 +54,11 @@ def resolve(recipe, config_file=None, overrides=None):
             raise ValueError(field+" must be a positive integer")
     if config["nodes_per_shard"] < 4:
         raise ValueError("PBFT requires at least four nodes per shard in these recipes")
-    if len(config["half_seconds"]) != 3 or any(x <= 0 for x in config["half_seconds"]):
+    if not isinstance(config["half_seconds"], (list, tuple)) or len(config["half_seconds"]) != 3 or any(
+            not isinstance(x, (int, float)) or isinstance(x, bool) or not math.isfinite(x) or x <= 0
+            for x in config["half_seconds"]):
         raise ValueError("three positive half-lives are required")
-    if config["tolerance"] < 1:
+    if not isinstance(config["tolerance"], (int, float)) or not math.isfinite(config["tolerance"]) or config["tolerance"] < 1:
         raise ValueError("tolerance must be at least one")
     return config
 

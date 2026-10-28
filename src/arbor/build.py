@@ -7,6 +7,7 @@ import tarfile
 import urllib.request
 
 from .io import fingerprint, load, root, save, sha
+from .cache import file_lock
 
 
 def go_tool():
@@ -35,6 +36,11 @@ def go_tool():
 
 
 def ensure_build():
+    with file_lock(root()/".build/build.lock"):
+        return _ensure_build()
+
+
+def _ensure_build():
     project = root()
     output = project/".build"
     output.mkdir(exist_ok=True)

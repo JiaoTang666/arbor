@@ -13,7 +13,7 @@ Arbor exposes one configuration resolver, one native runner and one complete-tra
 | `runtime` | Dataset + layout + recipe → native processes and measurements | Process lifecycle, environment, resources, retention |
 | `results` | Completed result JSON → figures | Measured points, shared scales, reproducible export |
 
-`native/layout/kernel.cpp` implements grouping and placement. `native/engine` retains the common Go execution path based on BlockEmulator, including PBFT, relay and dynamic CLPA. Existing Go protocol modules are retained together to preserve their tested call graph; optional legacy protocol paths are not exposed as Arbor recipes. The public Python layer has no date-version imports, source-fragment loading or runtime monkeypatching.
+`native/layout/kernel.cpp` implements grouping and placement. `native/engine` provides the common BlockEmulator-based execution path, including PBFT, relay and dynamic CLPA. Scientific modules exchange explicit arrays, model bundles and configuration objects; the CLI delegates process management to `runtime`.
 
 ## Artifact boundaries
 
@@ -27,9 +27,9 @@ The Go supervisor is the authoritative native admission path. Python uses the sa
 
 ## Lifecycle
 
-The queue locks its run directory, validates data, prepares a cached layout, checks resources and ports, then starts its own process groups. It removes inherited runtime overrides before launching every child. Native execution must exit normally and complete every transaction with valid stage counts. Only then does retention copy and hash the compact results and perform explicitly requested cleanup.
+The queue locks its run directory, verifies data once, snapshots selected models and prepares versioned layouts. Shared caches use locks and atomic publication. After resource and port checks, it starts its own process groups. Successful execution records normal exits and complete stage counts before recoverable result retention and requested cleanup.
 
-The CLI is a viewer/launcher. Closing the terminal does not own or terminate the queue. Resume accepts completed and unstarted cases; an attempted case without completion remains available for diagnosis and blocks automatic repetition.
+The CLI launches, observes, pauses, resumes and stops queues. Resume skips completed cases and finishes interrupted finalization. Native execution failures retain their run files for analysis.
 
 ## Validation
 

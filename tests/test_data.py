@@ -2,7 +2,7 @@ import csv
 import numpy as np
 import pytest
 
-from arbor.data import ingest, make_demo, parse, verify
+from arbor.data import ingest, make_demo, parse, verify, verification_receipt
 
 
 def row(a=1, b=2, amount="1", at=10):
@@ -45,3 +45,22 @@ def test_demo_covers_all_admission_classes(tmp_path):
     m = verify(out)
     assert m["test"]["accepted"] == 120
     assert set(m["test"]["entry_classes"]) == {"0", "1", "2"}
+
+
+def test_verified_identity_avoids_rehash_and_detects_changes(tmp_path, monkeypatch):
+    from arbor import data
+    raw = make_demo(tmp_path/"raw")
+    dataset = ingest(raw/"history.csv", raw/"test.csv", tmp_path/"data")
+    manifest = verify(dataset)
+    receipt = verification_receipt(dataset, manifest)
+    original = data.sha
+    calls = []
+    def counted(path):
+        calls.append(str(path))
+        return original(path)
+    monkeypatch.setattr(data, "sha", counted)
+    verify(dataset, receipt)
+    assert calls == [str(dataset/"manifest.json")]
+    (dataset/"test/input.csv").write_text("changed")
+    with pytest.raises(ValueError, match="changed"):
+        verify(dataset, receipt)

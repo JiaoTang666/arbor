@@ -30,6 +30,7 @@ jobs:
       - run: ./arbor run ablation --config configs/demo.yaml --dataset data/demo --output runs/ablation --cleanup-db --json
       - run: ./arbor train fusion --small --output runs/fusion --json
       - run: ./arbor train admission --small --output runs/admission --json
+      - run: ./arbor run full --config configs/demo.yaml --dataset data/demo --admission-model runs/admission/model.json --fusion-model runs/fusion/model.json --output runs/trained --cleanup-db --json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -56,3 +57,7 @@ jobs:
             runs/ablation/cases/**/native/forest/result.json
             runs/fusion/complete.json
             runs/admission/complete.json
+            runs/trained/summary.*
+            runs/trained/status.json
+            runs/trained/controller.log
+            runs/trained/failure.json

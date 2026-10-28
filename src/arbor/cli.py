@@ -30,12 +30,14 @@ def parser():
     run.add_argument("--rate", type=int, dest="inject_tps")
     run.add_argument("--group-size", type=int)
     run.add_argument("--tolerance", type=float)
+    run.add_argument("--fusion-model", type=Path)
+    run.add_argument("--admission-model", type=Path)
     run.add_argument("--dry-run", action="store_true")
     run.add_argument("--detach", action="store_true", help="return after starting the independent queue")
     db = run.add_mutually_exclusive_group()
     db.add_argument("--keep-db", action="store_true", dest="keep_db", default=None)
     db.add_argument("--cleanup-db", action="store_false", dest="keep_db")
-    for command in ("status", "resume", "results"):
+    for command in ("status", "resume", "results", "pause", "stop"):
         cmd = sub.add_parser(command)
         cmd.add_argument("directory", type=Path)
         if command == "results":
@@ -107,7 +109,10 @@ def watch(directory, args):
             if key != last and not live:
                 emit(dict(run=str(directory), **state), args)
                 last = key
-            if state["status"] in ("COMPLETE", "FAILED", "INTERRUPTED"):
+            if state["status"] in ("COMPLETE", "FAILED", "INTERRUPTED", "PAUSED", "STOPPED"):
+                if state["status"] in ("PAUSED", "STOPPED"):
+                    emit(dict(run=str(directory), **state), args)
+                    return
                 if state["status"] != "COMPLETE":
                     raise RuntimeError(state.get("error", "queue failed; see controller.log"))
                 break
@@ -137,7 +142,8 @@ def main(argv=None):
                       resources=snapshot(root())), args)
         elif args.command == "run":
             config = resolve(args.recipe, args.config, {k: getattr(args, k) for k in
-                             ("dataset", "method", "shards", "inject_tps", "group_size", "tolerance", "keep_db")})
+                             ("dataset", "method", "shards", "inject_tps", "group_size", "tolerance", "keep_db",
+                              "fusion_model", "admission_model")})
             plan = dict(schema="arbor_run_v1", recipe=args.recipe, config=config, cases=cases(config))
             if args.dry_run:
                 emit(plan, args)
@@ -152,9 +158,12 @@ def main(argv=None):
                 emit(dict(run=str(directory), controller_pid=pid), args)
             else:
                 watch(directory, args)
-        elif args.command in ("status", "resume", "results"):
+        elif args.command in ("status", "resume", "results", "pause", "stop"):
             directory = args.directory.resolve()
-            if args.command == "status":
+            if args.command in ("pause", "stop"):
+                from .runtime.queue import control
+                emit(control(directory, args.command), args)
+            elif args.command == "status":
                 from .runtime.queue import status
                 emit(status(directory), args)
             elif args.command == "results":

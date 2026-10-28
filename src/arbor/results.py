@@ -44,6 +44,7 @@ def plot(directory):
             axes[1,col].set_xlabel("Shards")
             axes[1,col].set_xticks([4,8,12,16])
         axes[0,0].set_ylabel("Complete throughput (tx/s)")
+        axes[0,0].set_ylim(0, max(r["complete_tps"] for r in rows)*1.08)
         axes[1,0].set_ylabel("Mean complete latency (s, log)")
         axes[0,1].legend(frameon=False, fontsize=8)
     elif recipe == "halflife":
@@ -81,9 +82,16 @@ def plot(directory):
                 ax.scatter(values,range(len(labels)),color=[COLORS.get(r["method"],COLORS["Arbor"]) for r in rows])
                 ax.set_yticks(range(len(labels)),labels,fontsize=7); ax.invert_yaxis()
             (ax.set_ylabel if key else ax.set_xlabel)(title)
-    for ax in np.asarray(axes).flat: ax.grid(alpha=.22)
+    for ax in np.asarray(axes).flat:
+        ax.grid(alpha=.22)
+        for line in ax.lines:
+            x, y = line.get_data()
+            if len(x) and (np.min(x) < ax.get_xlim()[0] or np.max(x) > ax.get_xlim()[1]
+                           or np.min(y) < ax.get_ylim()[0] or np.max(y) > ax.get_ylim()[1]):
+                raise ValueError("plot limits would clip measured points")
     fig.savefig(output/"results.pdf",bbox_inches="tight")
     fig.savefig(output/"results.png",bbox_inches="tight")
+    fig.savefig(output/"results.svg",bbox_inches="tight")
     Image.open(output/"results.png").convert("L").save(output/"results_grayscale.png")
     save(output/"plot_manifest.json",dict(recipe=recipe,completed=len(rows),planned=len(plan["cases"]),
          uncertainty="none; one measurement per configuration", rows=[r["id"] for r in rows]))

@@ -1,0 +1,6 @@
+{
+  "scale": "reference/scale_load.csv",
+  "terminal": "validation/demo_summary.csv",
+  "cells": 36,
+  "measurements_per_cell": 1
+}

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.0
+
+- Resume successful executions through interrupted result saving and cleanup.
+- Lock shared caches, publish builds atomically and invalidate them when producing code changes.
+- Verify datasets once per queue and check file identities during subsequent preparation.
+- Merge nested resource overrides and add a ready-to-run small profile.
+- Add model path options and snapshot selected models for the full run.
+- Export the native candidate contract with newly trained admission models.
+- Add boundary pause and owned-process stop commands.
+- Preserve original archive/row provenance through raw-input preparation.
+- Add automatic HTTPS/private-release download selection.
+- Rework bilingual documentation around results, quick start and experiment use.
+
 ## 0.1.0
 
 - Extracted temporal graphs, entry forests, planning, admission, training and native experiment management into explicit modules.

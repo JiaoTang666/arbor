@@ -3,6 +3,8 @@ import copy
 import json
 import unittest
 import numpy as np
+from arbor.admission.candidates import contract
+from arbor.io import load, root
 from arbor.admission.model import (COST_SECONDS, COST_TOLERANCE, UNNORMALIZED, choose, diagnostics,
                     fit, point_weights, scores, validate_bundle)
 
@@ -16,6 +18,10 @@ def row(day=13, family='N', sequence=0, candidates=(3, 1, 2, 0), shift=0.):
                 pressure=pressure, candidates=list(candidates),
                 costs=1.7 * raw[list(candidates), 0] + shift,
                 r4_target=int(min(candidates, key=lambda shard: pressure[shard])))
+
+
+def test_training_contract_matches_native_frozen_contract():
+    assert contract() == load(root()/"models/admission.json")["candidate_contract"]
 
 
 class RankerTests(unittest.TestCase):

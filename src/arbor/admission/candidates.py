@@ -11,6 +11,17 @@ TIE_TOLERANCE = 1e-6
 SEED = 43
 
 
+def contract():
+    """Serialization contract shared by training exports and native inference."""
+    return dict(feature_order=list(COST_FEATURES), candidates=MAX_CANDIDATES, seed=SEED,
+                first="original P CDF using original pressure arithmetic",
+                additional="counter-hash independent domain; remaining positive probability without replacement",
+                tie_tolerance_cost_units=TIE_TOLERANCE, tie_order="candidate order",
+                continuation="one current target forced, every subsequent NN fixed P; complete input and drain",
+                pressure="max(queue,assigned-visible_confirmed), missing queue uses unconfirmed",
+                previous_share="previous base pressure proportions, never a learned output")
+
+
 def candidate_uniform(context, ordinal, k):
     """Candidate zero consumes exactly the existing P counter-random draw."""
     if isinstance(k, bool) or int(k) != k or k < 0:

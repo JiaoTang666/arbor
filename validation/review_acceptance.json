@@ -1,0 +1,43 @@
+{
+  "unit_tests": 37,
+  "ranker_parity_cases": 32,
+  "demo": {
+    "completed": 3,
+    "all_120_complete": true,
+    "cleanup": true,
+    "max_sampled_owned_rss_gib": null,
+    "binary_sha256": [
+      "67ee67407831ff5edc42ed00082d6810b299b97404ab76d6a0438bca3d21e339"
+    ]
+  },
+  "ablation": {
+    "completed": 5,
+    "all_120_complete": true,
+    "cleanup": true,
+    "max_sampled_owned_rss_gib": 0.4661979675292969,
+    "binary_sha256": [
+      "67ee67407831ff5edc42ed00082d6810b299b97404ab76d6a0438bca3d21e339"
+    ]
+  },
+  "trained_model_native": {
+    "completed": 1,
+    "all_120_complete": true,
+    "cleanup": true,
+    "max_sampled_owned_rss_gib": null,
+    "binary_sha256": [
+      "67ee67407831ff5edc42ed00082d6810b299b97404ab76d6a0438bca3d21e339"
+    ]
+  },
+  "stop": {
+    "status": "PASS",
+    "run_status": "STOPPED",
+    "owned_processes": 19,
+    "survivors": 0,
+    "performance_record_created": false
+  },
+  "pause_resume": {
+    "paused_at_completed": 2,
+    "resumed_completed": 3,
+    "completed_cases_reexecuted": 0
+  }
+}

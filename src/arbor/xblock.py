@@ -34,8 +34,11 @@ def split(paths, output, history_count, test_count):
     if history_count <= 0 or test_count <= 0:
         raise ValueError("split sizes must be positive")
     count, previous, rejected, ranges, sources = 0, -1, Counter(), {}, []
-    with (output/"history.csv").open("w",newline="") as h, (output/"test.csv").open("w",newline="") as t:
+    with (output/"history.csv").open("w",newline="") as h, (output/"test.csv").open("w",newline="") as t, \
+            (output/"history.origin.csv").open("w", newline="") as ho, \
+            (output/"test.origin.csv").open("w", newline="") as to:
         writers = [csv.writer(h,lineterminator="\r\n"),csv.writer(t,lineterminator="\r\n")]
+        origins = [csv.writer(ho), csv.writer(to)]
         for path in paths:
             sources.append(dict(name=Path(path).name,sha256=sha(path)))
             with source(path) as stream:
@@ -54,6 +57,7 @@ def split(paths, output, history_count, test_count):
                     part = 0 if count < history_count else 1
                     row[3],row[4],row[8]="0x"+a,"0x"+b,amount
                     writers[part].writerow(row)
+                    origins[part].writerow([len(sources)-1, index])
                     mark=dict(source=Path(path).name,row=index,block=row[0],timestamp=stamp)
                     interval=ranges.setdefault(str(part),dict(first=mark))
                     interval["last"]=mark

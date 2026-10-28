@@ -1,5 +1,6 @@
 import csv
 import zipfile
+import numpy as np
 from arbor.data import ingest
 from arbor.io import load
 from arbor.xblock import FIELDS, split
@@ -22,6 +23,9 @@ def test_raw_archive_keeps_duplicate_records_and_exact_large_values(tmp_path):
     assert receipt["ranges"]["0"]["last"]["row"] < receipt["ranges"]["1"]["first"]["row"]
     prepared=ingest(out/"history.csv",out/"test.csv",tmp_path/"prepared")
     assert load(prepared/"manifest.json")["test"]["accepted"]==2
+    np.testing.assert_array_equal(np.load(prepared/"test/source_file.npy"), [0, 0])
+    np.testing.assert_array_equal(np.load(prepared/"test/source_row.npy"), [4, 5])
+    assert (prepared/"source_manifest.json").exists()
     with (prepared/"test/input.csv").open() as f:
         rows=list(csv.reader(f))
     assert rows[0]==rows[1] and rows[0][8]==str(amount)

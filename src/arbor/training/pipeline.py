@@ -7,7 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
-from arbor.admission.candidates import choose_candidate
+from arbor.admission.candidates import choose_candidate, contract
 from arbor.admission.model import fit
 from arbor.build import ensure_build
 from arbor.config import DEFAULTS
@@ -163,7 +163,7 @@ def train(kind, dataset, output, *, small=False):
             for family in (("N", "O") if small else ("N", "E", "L", "O", "C")):
                 records.extend(collect_costs(window, day, family, small=small))
         save(output/"records.json", records)
-        model = fit(records, source_hashes={"records.json": sha(output/"records.json")})
+        model = fit(records, candidate_contract=contract(), source_hashes={"records.json": sha(output/"records.json")})
     save(output/"model.json", model)
     receipt = dict(status="PASS", kind=kind, small_fixture=small, model=str(output/"model.json"),
                    model_sha256=sha(output/"model.json"), dataset_sha256=sha(dataset/"manifest.json"),

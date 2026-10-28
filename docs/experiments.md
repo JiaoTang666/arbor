@@ -17,7 +17,7 @@ All recipes use the common engine and the same ordered input. Arbor is the publi
 | Paper block interval | 5 seconds |
 | Database cache / handles / trie cache | 128 MiB / 256 / 64 MiB |
 
-`full` runs one configured method. Each matrix cell is measured once. Repetition is explicit: use a new run directory for each repetition. A run never selects the most favorable duplicate.
+`full` runs one configured method. Each matrix cell is measured once. Use a new run directory for each repetition and aggregate those measurements for repeated-run statistics.
 
 ## Ablations
 
@@ -29,7 +29,7 @@ All recipes use the common engine and the same ordered input. Arbor is the publi
 | `NoGraphLayout` | Historical graph edges and relation grouping | Marginal account activity, forest demand and online observations |
 | `NoAdmission` | Partner-following, joint co-location and pressure/model-based first placement | Full historical layout and online observation; new accounts use independent hash |
 
-`NoLearn` is not part of the published ablation recipe. NoGraph removes historical relation organization, not all online graph instrumentation.
+`NoGraphLayout` removes historical relation organization while retaining online graph observations.
 
 ## Sensitivity and scaling
 
@@ -50,7 +50,7 @@ Each scale has its own historical layout, reused across its three offered loads.
 
 Full completion means all required stages are present exactly once and the logical stage count is `N + cross`. Planned release times do not slide with congestion. Complete TPS and mean/P95/P99 latency include queuing, execution, maintenance and drain. Replica work is not multiplied into logical stage counts.
 
-`reference/` contains the published measurements, with original binary/input identities and scope. The 36-cell unified-runtime matrix, historical ablations, half-life study, sensitivity study and triplicate record are separate result sets. The half-life reference table uses the approved isolated reruns for its first two configurations. The separate environment diagnostic is not another candidate. Rebuilt measurements are always written under `runs/`.
+`reference/` contains the paper measurements with their binary/input identities. The 36-cell matrix, ablations, half-life study, sensitivity study and three-run record have separate tables. Reproduction commands write new measurements under `runs/`.
 
 Paper-resource defaults intentionally match the large native experiment profile. A custom YAML can run smaller data, for example:
 

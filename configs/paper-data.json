@@ -3,6 +3,7 @@
   "repository": "JiaoTang666/arbor",
   "tag": "paper-data-v1",
   "private": true,
+  "url": "https://github.com/JiaoTang666/arbor/releases/download/paper-data-v1/arbor-paper-data-v1.tar.gz",
   "asset": "arbor-paper-data-v1.tar.gz",
   "sha256": "653cc701014c899b5ca37c823acdab42c1af60c615de851a52505ff76ae3e508",
   "size": 1087923026,

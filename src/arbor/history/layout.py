@@ -7,6 +7,7 @@ import subprocess
 import numpy as np
 
 from arbor.build import ensure_build
+from arbor.cache import cached_directory, producer
 from arbor.io import fingerprint, load, root, save, sha
 from .grouping import aggregate_groups, groups
 from .kernel import Kernel
@@ -67,10 +68,10 @@ def clpa_layout(data, addresses, output, shards):
     return route
 
 
-def build_layout(dataset, config):
+def build_layout(dataset, config, receipt=None, build=None):
     dataset = Path(dataset).resolve()
-    _, library = ensure_build()
-    prepare(dataset)
+    _, library = build or ensure_build()
+    prepared = prepare(dataset, receipt)
     method = config["method"]
     arm = config.get("ablation", "Full")
     if arm == "NoAdmission":
@@ -78,28 +79,33 @@ def build_layout(dataset, config):
     params = dict(method=method, ablation=arm, shards=config["shards"],
                   half_seconds=config["half_seconds"], group_size=config["group_size"],
                   tolerance=config["tolerance"], dataset_sha256=sha(dataset/"manifest.json"),
-                  fusion_sha256=sha(root()/"models/fusion.json"), kernel_sha256=sha(library))
+                  fusion_sha256=sha(Path(config.get("fusion_model", root()/"models/fusion.json"))),
+                  kernel_sha256=sha(library), prepared_identity=load(prepared/"complete.json")["identity"],
+                  producer=producer("src/arbor/history/layout.py", "src/arbor/history/grouping.py",
+                                    "src/arbor/history/kernel.py", "src/arbor/history/relations.py"))
+    if method == "CLPA":
+        params["clpa_sha256"] = sha(root()/".build/arbor-clpa-layout")
     output = dataset/"layouts"/fingerprint(params)[:20]
-    if (output/"complete.json").exists():
-        record = load(output/"complete.json")
-        for name, expected in record["files"].items():
-            if sha(output/name) != expected:
-                raise ValueError("cached layout member changed: "+name)
-        return output
-    output.mkdir(parents=True, exist_ok=False)
+    return cached_directory(output, params, lambda staging: _build_layout(dataset, config, library, prepared, staging))
+
+
+def _build_layout(dataset, config, library, prepared, output):
+    method, shards = config["method"], config["shards"]
+    arm = config.get("ablation", "Full")
+    if arm == "NoAdmission":
+        arm = "Full"
     addresses = np.load(dataset/"addresses.npy", mmap_mode="r")
-    shards = config["shards"]
     details = {}
     if method == "Monoxide":
         route = np.array([int(a[-8:], 16) % shards for a in addresses], np.int32)
     else:
         kernel = Kernel(library)
-        data = load_history(dataset, kernel)
+        data = load_history(dataset, kernel, prepared)
         if method == "CLPA":
             route = clpa_layout(data, addresses, output, shards)
         else:
             s = snapshot(data, int(data["t"][-1]), inclusive=True, half=config["half_seconds"])
-            route, labels, tree, details = plan_snapshot(data, s, load(root()/"models/fusion.json"),
+            route, labels, tree, details = plan_snapshot(data, s, load(Path(config.get("fusion_model", root()/"models/fusion.json"))),
                                                          dict(config, ablation=arm), kernel)
             np.savez(output/"hierarchy.npz", **tree)
             np.save(output/"groups.npy", labels.astype(np.int32))
@@ -107,6 +113,4 @@ def build_layout(dataset, config):
         raise ValueError("layout coverage mismatch")
     np.save(output/"routes.npy", route.astype(np.int32))
     write_ledger(output/"initial_ledger.json", addresses, route, shards)
-    save(output/"complete.json", dict(config=params, details=details,
-         files={p.name: sha(p) for p in output.iterdir() if p.is_file()}))
-    return output
+    return details

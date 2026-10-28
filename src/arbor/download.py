@@ -7,6 +7,7 @@ import subprocess
 import tarfile
 import tempfile
 import urllib.request
+import urllib.error
 
 from .data import verify
 from .io import load, sha
@@ -40,20 +41,28 @@ def fetch(manifest_path, destination):
     archive = cache/manifest["asset"]
     if not archive.exists() or sha(archive) != manifest["sha256"]:
         temporary = archive.with_suffix(".part")
-        if manifest.get("private", False):
+        url = manifest.get("url")
+        downloaded = False
+        if url:
+            if not url.startswith("https://"):
+                raise ValueError("dataset downloads require HTTPS")
+            try:
+                with urllib.request.urlopen(url, timeout=120) as source, temporary.open("wb") as target:
+                    shutil.copyfileobj(source, target, 8 << 20)
+                    target.flush(); os.fsync(target.fileno())
+                downloaded = True
+            except urllib.error.HTTPError as error:
+                if error.code not in (401, 403, 404) or not manifest.get("private", False):
+                    raise
+        if not downloaded and manifest.get("private", False):
             if not shutil.which("gh"):
                 raise RuntimeError("This private release requires GitHub CLI: install gh, then gh auth login")
             with tempfile.TemporaryDirectory(dir=cache) as stage:
                 subprocess.run(["gh", "release", "download", manifest["tag"], "--repo", manifest["repository"],
                                 "--pattern", manifest["asset"], "--dir", stage], check=True)
                 shutil.move(str(Path(stage)/manifest["asset"]), temporary)
-        else:
-            url = manifest["url"]
-            if not url.startswith("https://"):
-                raise ValueError("dataset downloads require HTTPS")
-            with urllib.request.urlopen(url, timeout=120) as source, temporary.open("wb") as target:
-                shutil.copyfileobj(source, target, 8 << 20)
-                target.flush(); os.fsync(target.fileno())
+        elif not downloaded:
+            raise ValueError("dataset manifest requires an HTTPS download URL")
         if sha(temporary) != manifest["sha256"]:
             raise ValueError("dataset download hash mismatch; partial file retained")
         temporary.replace(archive)

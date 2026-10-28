@@ -80,8 +80,10 @@ def target_fixture(tmp_path):
 def test_cleanup_is_explicit_and_scoped(tmp_path):
     target = target_fixture(tmp_path)
     retain_and_cleanup(target, True)
+    retain_and_cleanup(target, True)
     assert (target/"native/runtime/db").exists()
     other = target_fixture(tmp_path/"second")
+    retain_and_cleanup(other, False)
     retain_and_cleanup(other, False)
     assert not (other/"native").exists()
     assert load(other/"cleanup.json")["removed_file_bytes"] == 8

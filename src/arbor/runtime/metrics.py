@@ -58,4 +58,4 @@ def collect(run,case,total):
         native_queue=stats(queues),block_fill=stats(fill),maintenance_epochs=maintenance,
         decision_compute_ns=stats(decision_ns),
         clock='Scheduled batch release to latest required stage receipt on supervisor monotonic clock',
-        post_run_processing='One metric pass only; no ledger scans, ownership or decision replay')
+        post_run_processing='One streaming pass over native lifecycle events')

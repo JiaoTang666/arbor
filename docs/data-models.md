@@ -11,11 +11,13 @@ Exact test CSV SHA256:
 
 The published history CSV is canonicalized with exact integer values and CRLF records. Its accepted sender/recipient/time arrays match the original experiment arrays. `configs/paper-data.json` pins the downloadable package and dataset manifest. The package contains no precomputed layout or private server checkpoint.
 
-The source family is XBlock **Block Transaction**, [official directory](https://xblock.pro/xblock-eth.html). This repository does not mix ERC20/Internal Transaction edges into Arbor's graph. Some upstream archive naming refers to an older multi-source preprocessing project; its auxiliary assignments and training clusters are not consumed here.
+The source is XBlock **Block Transaction**, archive [`18750000to18999999_BlockTransaction.zip`](https://zhengpeilin.com/download.php?file=18750000to18999999_BlockTransaction.zip). The history spans blocks 18,750,000–18,919,698; the test spans 18,919,698–18,940,083. [`configs/paper-source.json`](../configs/paper-source.json) records boundary transaction hashes, counts and canonical input hashes. `./arbor data paper` installs this exact window.
+
+The pinned inputs originate from historical preprocessed exports. Their original per-row archive positions were not retained. Use the pinned release for the paper window; the raw-import procedure below creates new windows with complete archive/row provenance.
 
 ## Process new raw inputs
 
-Download consecutive Block Transaction archives from XBlock, keep their source order, then run:
+Download consecutive Block Transaction archives from XBlock, keep their source order, then create a new 5-million-history / 1-million-test window:
 
 ```bash
 .venv/bin/python -m arbor.xblock first_BlockTransaction.zip next_BlockTransaction.zip \
@@ -32,13 +34,13 @@ value gasLimit gasPrice gasUsed callingFunction isError eip2718type baseFeePerGa
 maxFeePerGas maxPriorityFeePerGas
 ```
 
-Only non-contract endpoints, valid 40-hex addresses, distinct sender/recipient and nonnegative integer values are accepted. Value strings never pass through floating point or fixed-width integer conversion. The prepared-input command accepts headerless canonical CSV in this field order; it rejects timestamp regression and builds IDs by first appearance. Source row indices are preserved in each split. A new raw window is a new dataset, not an automatically identical substitute for the pinned paper archive.
+Only non-contract endpoints, valid 40-hex addresses, distinct sender/recipient and nonnegative integer values are accepted. Values use exact integers. The prepared-input command accepts headerless CSV in this field order, rejects timestamp regression and builds IDs by first appearance. `raw_row.npy` indexes this input CSV from zero. The raw converter also writes origin sidecars; preparation carries these into `source_file.npy` and `source_row.npy`, indexing the source manifest and the one-based archive data row.
 
 The dataset license follows its source. The software MIT license does not grant a new license over third-party data. Raw archive identifiers can be recorded in `source_manifest.json` when creating a new window.
 
 ## Frozen models
 
-`models/fusion.json` contains the historical fusion weights. `models/admission.json` contains the 20-feature linear cost ranker, normalizer, candidate contract and tie tolerance. Numerical inference fields remain unchanged from the experiment artifacts. Personal source paths in admission provenance were replaced by an original-artifact fingerprint; its publication-file hash therefore differs from the old file while predictions remain the same.
+`models/fusion.json` contains the historical fusion weights. `models/admission.json` contains the 20-feature linear cost ranker, normalizer, candidate contract and tie tolerance. Original artifact identities are recorded below and in `docs/source_provenance.json`.
 
 Original admission artifact:
 `f03d32a81f77f805d5fe0c3c018112ea246abc36c563c5eb7856b81f9b59859b`.
@@ -53,3 +55,5 @@ The ranker normalizes training features, predicts within-candidate cost differen
 Fusion training uses prefixes at historical days 12 and 16 and labels from their next historical day. Admission sample preparation uses the early fusion fit (days 8 and 12) for days 13–16, then the supplied later fusion fit for days 17–20. Fixed service calendars under `configs/training/` define the five training scene families. Candidate labels come from full-drain counterfactual continuations, checked against the backbone continuation; this is offline training simulation, not a native performance measurement.
 
 Admission fitting uses equal day/scene/point weights, training-only normalization and ridge coefficient 0.01. Each training directory retains prepared windows, label records, exported model and hashes. `--small` selects short synthetic historical windows for validation. The default experiment path never trains, and neither command overwrites the frozen model.
+
+Select exported models with `arbor run ... --fusion-model <path> --admission-model <path>`. Each run snapshots the selected files and records their hashes; the fusion model also participates in the layout cache identity.
