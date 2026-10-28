@@ -31,10 +31,15 @@ cd arbor
 
 终端展示当前组、运行阶段、交易进度和最终性能表。Ctrl+C退出显示后，队列继续在后台运行。
 
-## 复现论文实验
+## 准备数据与运行实验
+
+从[XBlock官方目录](https://xblock.pro/xblock-eth.html)下载Block Transaction数据。论文使用的时期由[`18750000to18999999_BlockTransaction.zip`](https://zhengpeilin.com/download.php?file=18750000to18999999_BlockTransaction.zip)覆盖。将源包保存到`data/raw/`后，直接生成本地实验窗口：
 
 ```bash
 ./arbor data paper
+./arbor data xblock \
+  --source data/raw/18750000to18999999_BlockTransaction.zip \
+  --history-count 8840117 --test-count 979572 --output data/paper
 ./arbor run scale --cleanup-db
 ./arbor results runs/<run-id> --plot
 ```
@@ -47,6 +52,8 @@ cd arbor
 | `./arbor run group-size` | 分组上限16／32／64 |
 | `./arbor run tolerance` | 负担容忍度1.05／1.10／1.20 |
 | `./arbor run scale` | 三种方法×四种分片数×三档负载 |
+
+`data paper`展示官方链接和准备命令；`data xblock`串联清洗、切分与编码，数量按有效交易计数，`--source`也可传入多个顺序源包。上述命令在本地生成窗口上复现方法流程；参考表使用的历史论文输入由[窗口身份清单](configs/paper-source.json)记录。
 
 论文数据包含 **8,840,117笔历史交易和979,572笔测试交易**。Arbor历史半衰期为 **6h／48h／3.5d**，分组上限 **64**，负担容忍度 **1.10**；在线关系核为 **6h／24h／7d**。每片4节点、区块容量1,000、区块间隔5秒；100%名义注入负载为`200×分片数`笔原始交易／秒。
 
@@ -97,6 +104,12 @@ cd arbor
 
 Python模块位于`src/arbor`，Go／C++内核位于`native`，实验差异由`configs`配方表达。CI验证构建、单元测试、三方法运行、五项消融、跨语言模型一致性、绘图及训练模型的原生执行。
 
-代码采用MIT许可，保留[BlockEmulator与依赖声明](THIRD_PARTY_NOTICES.md)；数据遵循原来源条款。引用信息见[`CITATION.cff`](CITATION.cff)。
+代码采用MIT许可，保留[BlockEmulator与依赖声明](THIRD_PARTY_NOTICES.md)。[基线与参考文献](docs/references.md)说明复现范围；数据通过XBlock获取并遵循来源条款。
 
-**预览访问：**当前仓库为私有，协作者需获得访问权限并执行`gh auth login`，克隆前执行`gh auth setup-git`。数据优先通过HTTPS下载，私有资产使用GitHub CLI鉴权。
+## 作者与引用
+
+**朱嘉诚／Jiacheng Zhu**（第一作者）、**黄杰／Jie Huang**（通讯作者）。
+
+浙江科技大学／Zhejiang University of Science and Technology。
+
+引用信息见[`CITATION.cff`](CITATION.cff)。代码问题与缺陷反馈请通过[GitHub Issues](https://github.com/JiaoTang666/arbor/issues)提交。

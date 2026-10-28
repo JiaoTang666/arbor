@@ -63,6 +63,6 @@ runs/<run-id>/
 
 - **Installation:** use Python 3.12 (`PYTHON=python3.12 ./install.sh`); install `g++` and `python3.12-venv` on Ubuntu.
 - **Go downloads:** set your network's `GOPROXY`, for example `GOPROXY=https://goproxy.cn,direct ./install.sh`.
-- **Private data:** install GitHub CLI, run `gh auth login`, and check repository access.
+- **Data preparation:** use `arbor data paper` for official XBlock links, then `arbor data xblock --source ...` to prepare downloaded CSV/ZIP inputs.
 - **Resource admission:** inspect `doctor`, dataset size and the YAML resource fields.
 - **Failed execution:** inspect `controller.log` and the case's `native/` logs. Failed cases remain available for analysis.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Add one-command preparation of local XBlock archives, including source-row provenance.
+- Make `data paper` display official source links and preparation commands.
+- Remove the GitHub dataset mirror and its private-download implementation.
+- Add Jiacheng Zhu and Jie Huang, Zhejiang University of Science and Technology, to author and citation metadata.
+- Document baseline implementation scope and original references.
+
 ## 0.2.0
 
 - Resume successful executions through interrupted result saving and cleanup.

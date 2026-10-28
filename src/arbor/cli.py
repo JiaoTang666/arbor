@@ -45,14 +45,16 @@ def parser():
         elif command == "resume":
             cmd.add_argument("--detach", action="store_true")
     sub.add_parser("doctor", help="check tools, builds and host resources")
-    data = sub.add_parser("data", help="download or prepare ordered transaction data")
-    data.add_argument("source", choices=("demo", "paper", "prepare"))
+    data = sub.add_parser("data", help="find official sources or prepare ordered transaction data")
+    data.add_argument("source", choices=("demo", "paper", "prepare", "xblock"))
+    data.add_argument("--source", nargs="+", type=Path, dest="archives", help="ordered XBlock CSV/ZIP inputs")
+    data.add_argument("--history-count", type=int, default=8840117, help="accepted historical transactions")
+    data.add_argument("--test-count", type=int, default=979572, help="accepted test transactions")
     data.add_argument("--history", type=Path)
     data.add_argument("--test", type=Path)
     data.add_argument("--output", type=Path)
     data.add_argument("--history-raw-limit", type=int)
     data.add_argument("--test-raw-limit", type=int)
-    data.add_argument("--manifest", type=Path)
     train = sub.add_parser("train", help="explicit offline fitting; experiments never train implicitly")
     train.add_argument("model", choices=("fusion", "admission"))
     train.add_argument("--dataset", type=Path, default=root()/"data/paper")
@@ -186,8 +188,29 @@ def main(argv=None):
             from .data import ingest, make_demo
             destination = args.output or root()/"data"/args.source
             if args.source == "paper":
-                from .download import fetch
-                fetch(args.manifest or root()/"configs/paper-data.json", destination)
+                info = load(root()/"configs/paper-source.json")
+                command = ("./arbor data xblock --source data/raw/"+info["archive"]+
+                           " --history-count 8840117 --test-count 979572 --output data/paper")
+                if args.json:
+                    emit(dict(catalog=info["catalog"], archive=info["archive"], url=info["archive_url"],
+                              prepare_command=command, reproduction="method workflow on a locally prepared window",
+                              reference_window=info), args)
+                else:
+                    from rich.console import Console
+                    console = Console(no_color=args.no_color)
+                    console.print("[bold cyan]XBlock · Block Transaction[/]")
+                    console.print("Catalog: "+info["catalog"])
+                    console.print("Archive: "+info["archive_url"])
+                    console.print("\nDownload the archive, then prepare a local experiment window:")
+                    console.print(command, markup=False)
+                    console.print("\nCounts refer to accepted transactions. Paper reference identities are in configs/paper-source.json.")
+                return
+            elif args.source == "xblock":
+                if not args.archives:
+                    raise ValueError("data xblock requires --source with ordered CSV/ZIP paths")
+                from .xblock import prepare
+                destination = args.output or root()/"data/paper"
+                prepare(args.archives, destination, args.history_count, args.test_count)
             elif args.source == "demo":
                 raw = make_demo(root()/"data/demo_raw")
                 ingest(raw/"history.csv", raw/"test.csv", destination)

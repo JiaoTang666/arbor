@@ -25,12 +25,15 @@ jobs:
       - run: .venv/bin/python scripts/check_parity.py
       - run: go test -p 2 ./networks ./supervisor ./supervisor/committee ./supervisor/signal ./build ./core ./chain
         working-directory: native/engine
-      - run: ./arbor run demo --output runs/ci --cleanup-db --json
+      - run: ./arbor data paper --json
+      - run: .venv/bin/python scripts/make_xblock_fixture.py data/raw/demo.zip
+      - run: ./arbor data xblock --source data/raw/demo.zip --history-count 2400 --test-count 120 --output data/xblock-demo --json
+      - run: ./arbor run demo --dataset data/xblock-demo --output runs/ci --cleanup-db --json
       - run: ./arbor results runs/ci --plot --json
-      - run: ./arbor run ablation --config configs/demo.yaml --dataset data/demo --output runs/ablation --cleanup-db --json
+      - run: ./arbor run ablation --config configs/demo.yaml --dataset data/xblock-demo --output runs/ablation --cleanup-db --json
       - run: ./arbor train fusion --small --output runs/fusion --json
       - run: ./arbor train admission --small --output runs/admission --json
-      - run: ./arbor run full --config configs/demo.yaml --dataset data/demo --admission-model runs/admission/model.json --fusion-model runs/fusion/model.json --output runs/trained --cleanup-db --json
+      - run: ./arbor run full --config configs/demo.yaml --dataset data/xblock-demo --admission-model runs/admission/model.json --fusion-model runs/fusion/model.json --output runs/trained --cleanup-db --json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

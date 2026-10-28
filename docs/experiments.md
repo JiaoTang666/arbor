@@ -1,6 +1,6 @@
 # Experiment recipes
 
-All recipes use the common engine and the same ordered input. Arbor is the publication name of the method labeled **Full** in earlier records; **Monoxide** is the public label of the existing hash/relay execution path. Dynamic CLPA includes its actual epoch repartitioning and state transfer. These names do not change the stored reference values.
+All recipes use the common engine and the same ordered input. Arbor is the publication name of the method labeled **Full** in reference records. Monoxide uses address-based placement and relay execution; dynamic CLPA includes epoch repartitioning and state transfer. Both baselines run on the common PBFT engine. See [implementation scope and original references](references.md).
 
 ## Default configuration
 
@@ -51,6 +51,8 @@ Each scale has its own historical layout, reused across its three offered loads.
 Full completion means all required stages are present exactly once and the logical stage count is `N + cross`. Planned release times do not slide with congestion. Complete TPS and mean/P95/P99 latency include queuing, execution, maintenance and drain. Replica work is not multiplied into logical stage counts.
 
 `reference/` contains the paper measurements with their binary/input identities. The 36-cell matrix, ablations, half-life study, sensitivity study and three-run record have separate tables. Reproduction commands write new measurements under `runs/`.
+
+Prepare local inputs from the [official XBlock source](https://xblock.pro/xblock-eth.html) with `arbor data xblock`. Each prepared window records its own input hashes and boundaries. The supplied reference tables retain the historical paper-window identities listed in `configs/paper-source.json`.
 
 Paper-resource defaults intentionally match the large native experiment profile. A custom YAML can run smaller data, for example:
 

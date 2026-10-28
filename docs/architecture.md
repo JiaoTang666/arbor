@@ -4,7 +4,7 @@ Arbor exposes one configuration resolver, one native runner and one complete-tra
 
 | Module | Inputs → outputs | Responsibility |
 |---|---|---|
-| `data`, `xblock`, `download` | Ordered transactions → verified dataset | Exact integers, filtering, chronological split, address IDs |
+| `data`, `xblock` | Ordered transactions → verified dataset | Official source instructions, exact integers, filtering, chronological split, address IDs |
 | `history/representation`, `graph` | Historical/accepted prefixes → temporal relations | Offline aggregation and online updates |
 | `forest` | First contacts + completed observations → source state | Entry relationships, cohorts, recent workload |
 | `history/grouping`, `layout` | Relations + demand + config → routes and initial ledger | Grouping, placement, reusable layouts |
@@ -18,7 +18,7 @@ Arbor exposes one configuration resolver, one native runner and one complete-tra
 ## Artifact boundaries
 
 - **Dataset:** `manifest.json` plus ordered CSV, dense-ID arrays, source timestamps and entry relations. No layout chosen from test results.
-- **Prepared state:** graph and forest reconstructed from the distributed history. Neither a private server checkpoint nor an old runtime directory is required.
+- **Prepared state:** graph and forest reconstructed from the locally prepared history.
 - **Layout:** identity includes input, fusion model, kernel, shard count and planning settings. The same layout is reused across load levels.
 - **Run:** immutable planned cases; each case stores effective configuration, build/input/model identities and normal-exit evidence.
 - **Result:** complete-transaction metrics, per-shard logical work and compact provenance. Published reference measurements are separate from new runs.

@@ -25,5 +25,6 @@
     "last_hash": "0xc5f8300757d399a5f5e658cf2e1a9af67018681881f5707fa37f615266ad0685"
   },
   "reproduction_entry": "arbor data paper",
-  "source_row_mapping": "Pinned release rows identify canonical exports. Original per-row archive positions were not retained by the historical export. New xblock imports preserve source_file/source_row arrays."
+  "reproduction_scope": "Method workflow from official XBlock archives; newly prepared windows carry their own input identities.",
+  "source_row_mapping": "Historical reference hashes identify the paper exports. New xblock imports preserve source_file/source_row arrays."
 }

@@ -1,0 +1,31 @@
+{
+  "version": "0.3.0",
+  "date": "2026-10-28",
+  "platform": "Linux, Python 3.12, Go 1.22",
+  "python_tests": {"passed": 42},
+  "undefined_name_checks": "PASS",
+  "python_go_parity_cases": 32,
+  "xblock_import": {
+    "fixture": "Deterministic synthetic XBlock-format ZIP",
+    "accepted_history": 2400,
+    "accepted_test": 120,
+    "checks": ["source order", "valid duplicates", "exact large integer amounts", "archive and row provenance", "split boundary", "no partial dataset on failure", "existing dataset preserved"]
+  },
+  "native_demo": {
+    "methods": ["Arbor", "Monoxide", "CLPA"],
+    "completed_per_method": 120,
+    "unfinished_per_method": 0,
+    "stage_conservation": "PASS",
+    "normal_exit_and_cleanup": "PASS",
+    "result_and_plot_export": "PASS"
+  },
+  "citation": "PASS: official CFF schema, ordered author names and shared affiliation",
+  "local_document_links": "PASS",
+  "data_distribution": {
+    "source": "https://xblock.pro/xblock-eth.html",
+    "former_mirror": "Removed after matching local and server backup SHA256 checks",
+    "backup_sha256": "653cc701014c899b5ca37c823acdab42c1af60c615de851a52505ff76ae3e508",
+    "historical_release_source_links": "Updated"
+  },
+  "scope": "Small software validation; no additional paper-scale native experiments"
+}

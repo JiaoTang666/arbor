@@ -1,5 +1,6 @@
 {
   "status": "PASS",
+  "record_scope": "Historical v0.1 input verification; the mirror asset was retired for v0.3.0. Current data entry uses official XBlock sources.",
   "release": "https://github.com/JiaoTang666/arbor/releases/tag/paper-data-v1",
   "asset": "arbor-paper-data-v1.tar.gz",
   "archive_bytes": 1087923026,

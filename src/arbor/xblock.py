@@ -5,9 +5,10 @@ from contextlib import contextmanager
 import csv
 import io
 from pathlib import Path
+import tempfile
 import zipfile
 
-from .data import parse
+from .data import ingest, parse
 from .io import save, sha
 
 FIELDS = "blockNumber timestamp transactionHash from to toCreate fromIsContract toIsContract value gasLimit gasPrice gasUsed callingFunction isError eip2718type baseFeePerGas maxFeePerGas maxPriorityFeePerGas".split()
@@ -29,10 +30,10 @@ def source(path):
 
 
 def split(paths, output, history_count, test_count):
+    if any(type(n) is not int or n <= 0 for n in (history_count, test_count)):
+        raise ValueError("split sizes must be positive integers")
     output = Path(output)
     output.mkdir(parents=True,exist_ok=False)
-    if history_count <= 0 or test_count <= 0:
-        raise ValueError("split sizes must be positive")
     count, previous, rejected, ranges, sources = 0, -1, Counter(), {}, []
     with (output/"history.csv").open("w",newline="") as h, (output/"test.csv").open("w",newline="") as t, \
             (output/"history.origin.csv").open("w", newline="") as ho, \
@@ -43,7 +44,7 @@ def split(paths, output, history_count, test_count):
             sources.append(dict(name=Path(path).name,sha256=sha(path)))
             with source(path) as stream:
                 reader=csv.reader(stream)
-                header=next(reader)
+                header=next(reader, None)
                 if header != FIELDS:
                     raise ValueError("XBlock Block Transaction header does not match the documented 18 columns")
                 for index,row in enumerate(reader,1):
@@ -65,10 +66,30 @@ def split(paths, output, history_count, test_count):
                     if count == history_count+test_count: break
             if count == history_count+test_count: break
     if count != history_count+test_count:
-        raise ValueError(f"insufficient valid transactions: {count}; partial outputs retained")
+        raise ValueError(f"insufficient valid transactions: {count}; requested {history_count+test_count}")
     save(output/"source_manifest.json",dict(sources=sources,history=history_count,test=test_count,
          rejected=dict(rejected),ranges=ranges,order="source order; no deduplication; exact integer values",
          files={p.name:sha(p) for p in output.glob("*.csv")}))
+    return output
+
+
+def prepare(paths, output, history_count, test_count):
+    """Turn ordered source archives into one ready-to-run dataset."""
+    paths = [Path(path).resolve() for path in paths]
+    if not paths:
+        raise ValueError("at least one XBlock source is required")
+    output = Path(output).resolve()
+    if output.exists():
+        raise FileExistsError("dataset already exists: "+str(output))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with tempfile.TemporaryDirectory(prefix=".arbor-import-", dir=output.parent) as temporary:
+            staging = Path(temporary)
+            raw = split(paths, staging/"split", history_count, test_count)
+            dataset = ingest(raw/"history.csv", raw/"test.csv", staging/"dataset")
+            dataset.rename(output)
+    except zipfile.BadZipFile as error:
+        raise ValueError("invalid XBlock ZIP: "+str(error)) from error
     return output
 
 

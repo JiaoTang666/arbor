@@ -31,10 +31,15 @@ The example prepares synthetic history, builds the graph, forest and layouts, th
 
 The display shows the active case, progress and final performance table. Ctrl+C detaches the display while the queue continues in the background.
 
-## Reproduce the paper
+## Prepare data and run experiments
+
+Download [XBlock Block Transaction](https://xblock.pro/xblock-eth.html) data from its official source. The paper uses the period covered by [`18750000to18999999_BlockTransaction.zip`](https://zhengpeilin.com/download.php?file=18750000to18999999_BlockTransaction.zip). Save the archive under `data/raw/`, then prepare a local window:
 
 ```bash
 ./arbor data paper
+./arbor data xblock \
+  --source data/raw/18750000to18999999_BlockTransaction.zip \
+  --history-count 8840117 --test-count 979572 --output data/paper
 ./arbor run scale --cleanup-db
 ./arbor results runs/<run-id> --plot
 ```
@@ -47,6 +52,8 @@ The display shows the active case, progress and final performance table. Ctrl+C 
 | `./arbor run group-size` | Group limits 16 / 32 / 64 |
 | `./arbor run tolerance` | Burden tolerances 1.05 / 1.10 / 1.20 |
 | `./arbor run scale` | Three methods × four shard counts × three load levels |
+
+`data paper` displays official links and preparation instructions. `data xblock` cleans, splits and encodes the local archive; counts refer to accepted transactions. It also accepts multiple ordered archives after `--source`. The commands reproduce the method workflow on your prepared window; [paper window identities](configs/paper-source.json) identify the historical inputs behind the reference tables.
 
 The paper input contains **8,840,117 historical and 979,572 test transactions**. Arbor uses historical half-lives **6 h / 48 h / 3.5 d**, group limit **64** and burden tolerance **1.10**. The online relation kernel uses **6 h / 24 h / 7 d**. Each shard has four nodes, a 1,000-stage block capacity and a 5 s interval. Nominal 100% offered load is `200 × shards` original tx/s.
 
@@ -97,6 +104,12 @@ For full training, replace `--small` with `--dataset data/paper`. Each run snaps
 
 Python modules live in `src/arbor`, native Go/C++ code in `native`, and experiment recipes in `configs`. CI builds the engine and runs unit tests, three-method execution, five ablations, model parity, plotting and training-to-native execution.
 
-Arbor uses the MIT license and preserves [BlockEmulator and dependency notices](THIRD_PARTY_NOTICES.md). Data follows its source terms. Please cite [`CITATION.cff`](CITATION.cff).
+Arbor uses the MIT license and preserves [BlockEmulator and dependency notices](THIRD_PARTY_NOTICES.md). See [baseline implementations and references](docs/references.md). Data is obtained from XBlock under its source terms.
 
-**Preview access:** while this repository is private, collaborators need repository access and `gh auth login`; run `gh auth setup-git` before cloning. Data downloads use HTTPS, with GitHub CLI authentication for private release assets.
+## Authors and citation
+
+**Jiacheng Zhu** (朱嘉诚, first author) and **Jie Huang** (黄杰, corresponding author).
+
+Zhejiang University of Science and Technology (浙江科技大学).
+
+Please cite [`CITATION.cff`](CITATION.cff). For software questions and bug reports, use [GitHub Issues](https://github.com/JiaoTang666/arbor/issues).

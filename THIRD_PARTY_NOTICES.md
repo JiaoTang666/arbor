@@ -12,6 +12,8 @@ The installer obtains Go from `go.dev` when necessary and pip from PyPI. Downloa
 
 ## Data and models
 
-Transaction data originates from the XBlock Block Transaction collection. Dataset availability and terms are governed by the original source. The repository's MIT code license does not relicense third-party datasets. The included fitted model parameters were produced for Arbor; model provenance is documented in `docs/data-models.md`.
+Transaction data is obtained from the [XBlock Block Transaction collection](https://xblock.pro/xblock-eth.html). This repository provides official source links, processing code and reference metadata. The included fitted model parameters were produced for Arbor; model provenance is documented in `docs/data-models.md`.
 
 The names Monoxide and CLPA identify the corresponding execution/partition baselines implemented on this engine. This repository is an experimental reproduction, not an official distribution of those projects.
+
+Original publications, upstream implementation links and baseline scope are listed in [docs/references.md](docs/references.md).

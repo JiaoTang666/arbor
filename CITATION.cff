@@ -3,8 +3,13 @@ message: "Please cite this software release when using the Arbor artifact."
 title: "Arbor: Temporal and source-aware account placement for sharded blockchains"
 type: software
 authors:
-  - name: "Arbor contributors"
-version: 0.2.0
+  - family-names: "Zhu"
+    given-names: "Jiacheng"
+    affiliation: "Zhejiang University of Science and Technology"
+  - family-names: "Huang"
+    given-names: "Jie"
+    affiliation: "Zhejiang University of Science and Technology"
+version: 0.3.0
 date-released: 2026-10-28
 license: MIT
 repository-code: "https://github.com/JiaoTang666/arbor"

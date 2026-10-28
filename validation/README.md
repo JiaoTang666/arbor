@@ -1,5 +1,7 @@
 # Acceptance evidence
 
+`source_release_acceptance.json` covers v0.3.0 official-source imports, exact-value and provenance checks, three-method execution on the imported fixture, result export and author metadata validation.
+
 `review_acceptance.json` covers v0.2.0 cache/recovery/configuration regression tests, boundary pause/resume, live stop, and native use of newly trained models. Missing RSS observations are stored as null.
 
 `acceptance.json` records the clean Linux installation, native software smoke runs, training fixtures and cross-language checks. `demo_summary.csv` and `ablation_smoke.csv` contain these small runs; their timing is not a paper benchmark. The demo figure checks labels, export and layout.
@@ -8,7 +10,7 @@
 
 Paper equivalence evidence is separate:
 
-- `paper_download.json`: actual private-release download and extracted-member verification.
+- `paper_download.json`: historical input identity verification for the paper reference records.
 
 - `docs/paper_data_parity.json`: canonical inputs and six dense-array identities.
 - `docs/paper_layout_parity.json`: rebuilt four-shard routing and initial-ledger identities.
