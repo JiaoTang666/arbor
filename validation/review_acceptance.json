@@ -1,6 +1,11 @@
 {
   "unit_tests": 37,
   "ranker_parity_cases": 32,
+  "ci": {
+    "url": "https://github.com/JiaoTang666/arbor/actions/runs/40651251274",
+    "conclusion": "success",
+    "tested_commit": "96fc1dbb33dc632776948f383ecd6fe6737facae"
+  },
   "demo": {
     "completed": 3,
     "all_120_complete": true,
