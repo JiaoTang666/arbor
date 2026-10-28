@@ -36,9 +36,11 @@ resources:
   runtime_available_floor_gib: 2
 ```
 
-Unspecified fields retain their recipe values. Runtime monitoring samples process RSS and available memory/disk every five seconds. Preparation uses a separate RSS allowance. `peak_sampled_owned_rss_gib` reports the maximum observed sum of the run's process RSS.
+Unspecified fields retain their recipe values. Runtime monitoring samples process RSS and available memory/disk every five seconds. The runner's history-graph and layout preparation uses the separate `offline_rss_gib` allowance. `peak_sampled_owned_rss_gib` reports the maximum observed sum of the run's process RSS.
 
 The five-arm, 120-transaction example was verified on Ubuntu 24.04 with Python 3.12 and Go 1.22.0. Its largest sampled owned-process RSS sum was **0.47 GiB**, using 16 native nodes plus the supervisor and observers. The corresponding admission preset requires 2 GiB available RAM. [Verification records](../validation/review_acceptance.json).
+
+The real XBlock example uses 10,000 historical and 1,000 test transactions with the same small-run settings. All three methods completed; the largest sampled owned-process RSS sum was **1.12 GiB**, within the same 2 GiB admission preset. [Verification record](../validation/real_xblock_acceptance.json).
 
 The launcher removes inherited Go resource and database table-size overrides. Cache/handles/trie settings are 128 MiB / 256 / 64 MiB. Effective configuration, environment and build/model/input hashes accompany each result.
 

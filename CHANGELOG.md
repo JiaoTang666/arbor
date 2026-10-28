@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+- Add a real XBlock tutorial with 10,000 historical and 1,000 test transactions, three methods and result export.
+- Verify the complete workflow on a CSV prefix read from the official paper-period archive.
+- Specify that the configurable offline RSS allowance applies to the runner's history-graph and layout preparation.
+
 ## 0.3.0
 
 - Add one-command preparation of local XBlock archives, including source-row provenance.

@@ -33,7 +33,24 @@ cd arbor
 
 ## 准备数据与运行实验
 
-从[XBlock官方目录](https://xblock.pro/xblock-eth.html)下载Block Transaction数据。论文使用的时期由[`18750000to18999999_BlockTransaction.zip`](https://zhengpeilin.com/download.php?file=18750000to18999999_BlockTransaction.zip)覆盖。将源包保存到`data/raw/`后，直接生成本地实验窗口：
+从[XBlock官方目录](https://xblock.pro/xblock-eth.html)下载Block Transaction数据。论文使用的时期由[`18750000to18999999_BlockTransaction.zip`](https://zhengpeilin.com/download.php?file=18750000to18999999_BlockTransaction.zip)覆盖。将源包保存到`data/raw/`。
+
+### 先跑真实数据小窗口
+
+准备 **10,000笔有效历史交易和1,000笔测试交易**，使用`demo`小规模预设运行三种方法：
+
+```bash
+./arbor data xblock \
+  --source data/raw/18750000to18999999_BlockTransaction.zip \
+  --history-count 10000 --test-count 1000 --output data/xblock-small
+./arbor run demo --dataset data/xblock-small \
+  --output runs/xblock-small --cleanup-db
+./arbor results runs/xblock-small --plot
+```
+
+该示例使用真实交易，运行4片、每片4节点。`demo`提供小规模运行设置，`--dataset`指定已准备的XBlock输入，结果与图表保存在`runs/xblock-small`。
+
+### 运行论文规模实验
 
 ```bash
 ./arbor data paper
@@ -77,10 +94,10 @@ cd arbor
 
 | 配置 | 使用范围 | 启动前可用内存／磁盘余量 |
 |---|---|---|
-| `demo`、`configs/small.yaml` | 120笔合成交易示例 | 2 GiB／2 GiB |
+| `demo`、`configs/small.yaml` | 合成交易与真实数据小窗口示例 | 2 GiB／2 GiB |
 | 论文配方 | 完整论文数据与原生矩阵 | 300 GiB／数据盘70 GiB、系统盘100 GiB |
 
-论文预设对应原实验主机，可通过YAML的`resources`按数据规模和机器配置调整；小样例配置可直接运行。[`doctor`](docs/running.md)显示主机资源，每组结果记录采样进程RSS，离线准备使用8 GiB RSS保护。
+论文预设对应原实验主机，可通过YAML的`resources`按数据规模和机器配置调整；小样例配置可直接运行。[`doctor`](docs/running.md)显示主机资源，每组结果记录采样进程RSS。运行器中的历史图与布局准备默认使用8 GiB RSS限额，可通过`resources.offline_rss_gib`调整。
 
 ## 训练与使用模型
 

@@ -1,0 +1,95 @@
+{
+  "version": "0.3.1",
+  "date": "2026-10-28",
+  "scope": "Real-data small software example; separate from paper measurements",
+  "source": {
+    "url": "https://zhengpeilin.com/download.php?file=18750000to18999999_BlockTransaction.zip",
+    "resolved_url": "https://sg.xblock.pro/dataset/18750000to18999999_BlockTransaction.zip",
+    "http_status": 200,
+    "etag": "\"1734967154.4132345-3768310275-2027364122\"",
+    "last_modified": "Mon, 23 Dec 2024 15:19:14 GMT",
+    "archive_member": "18750000to18999999_BlockTransaction.csv",
+    "downloaded_bytes": 3145817,
+    "decompressed_bytes": 8654651,
+    "raw_records": 31264,
+    "accepted": 11000,
+    "rejected": {
+      "contract_endpoint": 20138,
+      "self_transfer": 126
+    },
+    "first": {
+      "source_row": 1,
+      "block": 18750000,
+      "timestamp": 1702140995,
+      "transaction_hash": "0x784cc1692aca7eba23417b59be63a1709366a1fd3c7d2e982e9ffe745e03e560"
+    },
+    "last": {
+      "source_row": 31264,
+      "block": 18750186,
+      "timestamp": 1702143275,
+      "transaction_hash": "0xfdbe53a10ed6da1a582a232c1d013fcb59aca576e05896d0ec38a5035247f802"
+    },
+    "compressed_prefix_sha256": "39794127433c2dc4f01600d03bf279eea40db4755750fcd22089755a0197416d",
+    "csv_sha256": "71e6a7c27ff254cb775cf775b44550bd1db3543b67335e56adc2af0ade10f6de",
+    "scope": "Original CSV prefix read from an official ZIP; not a full-archive checksum"
+  },
+  "accepted_history": 10000,
+  "accepted_test": 1000,
+  "boundaries": {
+    "history": {
+      "first_source_row": 1,
+      "last_source_row": 28599,
+      "input_sha256": "f1540710571da38321b3ff07a2a545553828eef0978fd30670b6284e5aeb0a68"
+    },
+    "test": {
+      "first_source_row": 28600,
+      "last_source_row": 31264,
+      "input_sha256": "f6e4272cfdf52b95bf052daf30709a2a2a7c60021a9ffe7df9f47257a86ef02f"
+    }
+  },
+  "maximum_amount_bits": 71,
+  "order_values_and_provenance": "PASS",
+  "methods": [
+    {
+      "method": "Arbor",
+      "completed": 1000,
+      "unfinished": 0,
+      "total_stages": 1124,
+      "cross_fraction": 0.124,
+      "binary_sha256": "67ee67407831ff5edc42ed00082d6810b299b97404ab76d6a0438bca3d21e339",
+      "input_sha256": "f6e4272cfdf52b95bf052daf30709a2a2a7c60021a9ffe7df9f47257a86ef02f",
+      "sampled_owned_rss_gib": 1.1113471984863281,
+      "exit_and_cleanup": "PASS"
+    },
+    {
+      "method": "Monoxide",
+      "completed": 1000,
+      "unfinished": 0,
+      "total_stages": 1722,
+      "cross_fraction": 0.722,
+      "binary_sha256": "67ee67407831ff5edc42ed00082d6810b299b97404ab76d6a0438bca3d21e339",
+      "input_sha256": "f6e4272cfdf52b95bf052daf30709a2a2a7c60021a9ffe7df9f47257a86ef02f",
+      "sampled_owned_rss_gib": 1.069122314453125,
+      "exit_and_cleanup": "PASS"
+    },
+    {
+      "method": "CLPA",
+      "completed": 1000,
+      "unfinished": 0,
+      "total_stages": 1669,
+      "cross_fraction": 0.669,
+      "binary_sha256": "67ee67407831ff5edc42ed00082d6810b299b97404ab76d6a0438bca3d21e339",
+      "input_sha256": "f6e4272cfdf52b95bf052daf30709a2a2a7c60021a9ffe7df9f47257a86ef02f",
+      "sampled_owned_rss_gib": 1.0524864196777344,
+      "exit_and_cleanup": "PASS"
+    }
+  ],
+  "exported_figures": [
+    "plot_manifest.json",
+    "results.pdf",
+    "results.png",
+    "results.svg",
+    "results_grayscale.png"
+  ],
+  "result_export": "PASS"
+}

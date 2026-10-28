@@ -33,7 +33,24 @@ The display shows the active case, progress and final performance table. Ctrl+C 
 
 ## Prepare data and run experiments
 
-Download [XBlock Block Transaction](https://xblock.pro/xblock-eth.html) data from its official source. The paper uses the period covered by [`18750000to18999999_BlockTransaction.zip`](https://zhengpeilin.com/download.php?file=18750000to18999999_BlockTransaction.zip). Save the archive under `data/raw/`, then prepare a local window:
+Download [XBlock Block Transaction](https://xblock.pro/xblock-eth.html) data from its official source. The paper uses the period covered by [`18750000to18999999_BlockTransaction.zip`](https://zhengpeilin.com/download.php?file=18750000to18999999_BlockTransaction.zip). Save the archive under `data/raw/`.
+
+### Try a small real-data window
+
+Prepare **10,000 accepted historical transactions and 1,000 test transactions**, then run all three methods with the small `demo` preset:
+
+```bash
+./arbor data xblock \
+  --source data/raw/18750000to18999999_BlockTransaction.zip \
+  --history-count 10000 --test-count 1000 --output data/xblock-small
+./arbor run demo --dataset data/xblock-small \
+  --output runs/xblock-small --cleanup-db
+./arbor results runs/xblock-small --plot
+```
+
+This example uses real transactions on four shards with four nodes per shard. The `demo` preset supplies small-run settings; `--dataset` selects the prepared XBlock input. Results and figures are written to `runs/xblock-small`.
+
+### Run paper-scale experiments
 
 ```bash
 ./arbor data paper
@@ -77,10 +94,10 @@ CLI options override YAML, which overrides recipe defaults. Nested resource sett
 
 | Profile | Intended input | Available RAM / free disk at admission |
 |---|---|---|
-| `demo`, `configs/small.yaml` | Synthetic 120-transaction example | 2 GiB / 2 GiB |
+| `demo`, `configs/small.yaml` | Synthetic and small real-data examples | 2 GiB / 2 GiB |
 | Paper recipes | Full paper input and native matrix | 300 GiB / 70 GiB data, 100 GiB system |
 
-The paper preset matches the original experiment host. Set `resources` in YAML for your dataset and machine; the small preset is a ready-to-run example. [`doctor`](docs/running.md) reports host resources, and each result records sampled process RSS. Offline preparation has an 8 GiB RSS guard.
+The paper preset matches the original experiment host. Set `resources` in YAML for your dataset and machine; the small preset is a ready-to-run example. [`doctor`](docs/running.md) reports host resources, and each result records sampled process RSS. The runner's history-graph and layout preparation uses a default 8 GiB RSS limit, configurable through `resources.offline_rss_gib`.
 
 ## Train and use a model
 

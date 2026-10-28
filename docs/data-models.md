@@ -17,7 +17,18 @@ The reference history spans blocks 18,750,000–18,919,698; the test spans 18,91
 
 ## Prepare a local experiment window
 
-Save the downloaded archive under `data/raw/`, then run:
+Save the downloaded archive under `data/raw/`. Start with a small real-data window:
+
+```bash
+./arbor data xblock \
+  --source data/raw/18750000to18999999_BlockTransaction.zip \
+  --history-count 10000 --test-count 1000 --output data/xblock-small
+./arbor run demo --dataset data/xblock-small \
+  --output runs/xblock-small --cleanup-db
+./arbor results runs/xblock-small --plot
+```
+
+The `demo` recipe runs Arbor, Monoxide and CLPA on the selected input using four shards and small-run settings. For a paper-sized window, use:
 
 ```bash
 ./arbor data xblock \

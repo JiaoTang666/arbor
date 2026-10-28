@@ -1,5 +1,7 @@
 # Acceptance evidence
 
+`real_xblock_acceptance.json` covers v0.3.1 verification using an original CSV prefix from the official paper-period archive: 10,000 accepted historical transactions, 1,000 test transactions, exact-value/source-row checks and completed native runs for all three methods.
+
 `source_release_acceptance.json` covers v0.3.0 official-source imports, exact-value and provenance checks, three-method execution on the imported fixture, result export and author metadata validation.
 
 `review_acceptance.json` covers v0.2.0 cache/recovery/configuration regression tests, boundary pause/resume, live stop, and native use of newly trained models. Missing RSS observations are stored as null.
