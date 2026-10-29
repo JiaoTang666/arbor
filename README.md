@@ -126,6 +126,8 @@ Python modules live in `src/arbor`, native Go/C++ code in `native`, and experime
 
 Arbor uses the MIT license and preserves [BlockEmulator and dependency notices](THIRD_PARTY_NOTICES.md). See [baseline implementations and references](docs/references.md). Data is obtained from XBlock under its source terms.
 
+Related open-source implementation: [SPRING — third-party reproduction](https://github.com/LXINY-111/blockchain-spring).
+
 ## Authors and citation
 
 **Jiacheng Zhu** (朱嘉诚, first author) and **Jie Huang** (黄杰, corresponding author).

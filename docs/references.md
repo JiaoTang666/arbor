@@ -12,6 +12,10 @@ The Monoxide comparison evaluates the address-placement and relay mechanism unde
 
 The [upstream project](https://github.com/HuangLab-SYSU/block-emulator#3-published-papers-by-huanglab-using-blockemulator) identifies the SRDS 2022 work as the source of CLPA. The inherited MIT notice is in `native/engine/LICENSE`; dependency attribution is in [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
 
+## Related open-source implementation
+
+**SPRING (third-party reproduction):** [LXINY-111/blockchain-spring](https://github.com/LXINY-111/blockchain-spring).
+
 ## Data source
 
 [XBlock-ETH](https://github.com/tczpl/XBlock-ETH) provides the Block Transaction collection. [Official download directory](https://xblock.pro/xblock-eth.html) · [Paper-period archive](https://zhengpeilin.com/download.php?file=18750000to18999999_BlockTransaction.zip).

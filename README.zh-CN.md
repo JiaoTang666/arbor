@@ -126,6 +126,8 @@ Python模块位于`src/arbor`，Go／C++内核位于`native`，实验差异由`c
 
 代码采用MIT许可，保留[BlockEmulator与依赖声明](THIRD_PARTY_NOTICES.md)。[基线与参考文献](docs/references.md)说明复现范围；数据通过XBlock获取并遵循来源条款。
 
+相关开源实现：[SPRING第三方复现](https://github.com/LXINY-111/blockchain-spring)。
+
 ## 作者与引用
 
 **朱嘉诚／Jiacheng Zhu**（第一作者）、**黄杰／Jie Huang**（通讯作者）。
