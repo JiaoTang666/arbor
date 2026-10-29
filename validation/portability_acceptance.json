@@ -78,5 +78,6 @@
     "CLPA": "count graph only; no Arbor forest or temporal profiles"
   },
   "launcher_after_move_without_pythonpath_override": "PASS",
-  "legacy_clpa_identity_recovery": "PASS: original linked layout required for pending execution; successful finalization remains recoverable"
+  "legacy_clpa_identity_recovery": "PASS: original linked layout required for pending execution; successful finalization remains recoverable",
+  "launcher_ignores_stale_checkout_cwd": "PASS"
 }

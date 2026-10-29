@@ -6,4 +6,5 @@ if [[ ! -x "$ROOT/.venv/bin/python" ]]; then
   exit 2
 fi
 export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONSAFEPATH=1
 exec "$ROOT/.venv/bin/python" -m arbor "$@"

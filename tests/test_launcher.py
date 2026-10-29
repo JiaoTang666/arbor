@@ -27,13 +27,16 @@ def test_launcher_uses_moved_checkout_from_another_directory(tmp_path, stale_pat
     original.rename(moved)
     environment = dict(os.environ)
     environment.pop("PYTHONPATH", None)
+    environment.pop("PYTHONSAFEPATH", None)
+    caller = tmp_path
     if stale_path:
         old = tmp_path/"stale/arbor"
         old.mkdir(parents=True)
         (old/"__init__.py").write_text("")
         (old/"__main__.py").write_text("raise RuntimeError('stale checkout imported')\n")
         environment["PYTHONPATH"] = str(old.parent)
-    result = subprocess.run(["bash", str(moved/"arbor"), "argument with spaces"], cwd=tmp_path,
+        caller = old.parent
+    result = subprocess.run(["bash", str(moved/"arbor"), "argument with spaces"], cwd=caller,
                             env=environment, check=True, capture_output=True, text=True)
     source, arguments = json.loads(result.stdout)
     assert Path(source) == moved/"src/arbor/__main__.py"
