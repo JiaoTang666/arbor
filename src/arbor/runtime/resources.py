@@ -65,20 +65,46 @@ def process_sample(pid):
         return dict(pid=pid, birth_ticks=None, rss_bytes=0)
 
 
-def snapshot(directory):
+def filesystem_space(directory, dataset=None):
+    """Sample each writable filesystem once, even when multiple roles share a device."""
+    groups = {}
+    paths = [(directory, "results"), ("/tmp", "system")]
+    if dataset is not None:
+        paths.append((dataset, "dataset_cache"))
+    for value, role in paths:
+        path = Path(value).resolve()
+        while not path.exists():
+            path = path.parent
+        device = path.stat().st_dev
+        if device not in groups:
+            groups[device] = dict(device=device, paths=[], roles=[],
+                                  free_gib=shutil.disk_usage(path).free/2**30)
+        groups[device]["paths"].append(str(Path(value).resolve()))
+        groups[device]["roles"].append(role)
+    return list(groups.values())
+
+
+def snapshot(directory, dataset=None):
     mem = {line.split(":")[0]: int(line.split()[1])*1024 for line in Path("/proc/meminfo").read_text().splitlines()}
+    filesystems = filesystem_space(directory, dataset)
     return dict(available_gib=mem["MemAvailable"]/2**30,
-                data_free_gib=shutil.disk_usage(directory).free/2**30,
-                system_free_gib=shutil.disk_usage("/tmp").free/2**30)
+                data_free_gib=min(row["free_gib"] for row in filesystems
+                                  if set(row["roles"]) & {"results", "dataset_cache"}),
+                system_free_gib=next(row["free_gib"] for row in filesystems if "system" in row["roles"]),
+                filesystems=filesystems)
 
 
-def check_resources(directory, limits, children=(), admission=False):
-    state = snapshot(directory)
+def check_resources(directory, limits, children=(), admission=False, dataset=None):
+    state = snapshot(directory, dataset)
     floor = limits["min_available_gib"] if admission else limits["runtime_available_floor_gib"]
     if state["available_gib"] < floor:
         raise RuntimeError(f"available memory {state['available_gib']:.1f} GiB is below {floor} GiB")
-    if state["data_free_gib"] < limits["min_data_free_gib"] or state["system_free_gib"] < limits["min_system_free_gib"]:
-        raise RuntimeError("disk free space is below the configured reserve")
+    for row in state["filesystems"]:
+        reserves = [limits["min_system_free_gib"] if role == "system" else limits["min_data_free_gib"]
+                    for role in row["roles"]]
+        row["reserve_gib"] = max(reserves)
+        if row["free_gib"] < row["reserve_gib"]:
+            raise RuntimeError("disk free space is below the configured reserve: "+", ".join(row["paths"]))
     state["owned"] = [process_sample(p.pid) for p in children if p.poll() is None]
     state["owned_rss_gib"] = sum(p["rss_bytes"] for p in state["owned"])/2**30
     if state["owned_rss_gib"] > limits["max_owned_rss_gib"]:

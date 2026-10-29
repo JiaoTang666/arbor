@@ -8,10 +8,11 @@ import numpy as np
 
 from arbor.build import ensure_build
 from arbor.cache import cached_directory, producer
+from arbor.data import verify
 from arbor.io import fingerprint, load, root, save, sha
 from .grouping import aggregate_groups, groups
 from .kernel import Kernel
-from .prepare import load_history, prepare
+from .prepare import load_history, prepare, prepare_counts
 from .relations import demand_and_relation, snapshot
 
 INITIAL_BALANCE = "100000000000000000000000000000000000000000000"
@@ -47,8 +48,7 @@ def write_ledger(path, addresses, routes, shards):
         stream.write("]}\n")
 
 
-def clpa_layout(data, addresses, output, shards):
-    graph = data["graph"]
+def clpa_layout(graph, addresses, output, shards, binary):
     mask = graph["sender"] != graph["recipient"]
     path = output/"clpa_input.bin"
     with path.open("xb") as stream:
@@ -60,7 +60,7 @@ def clpa_layout(data, addresses, output, shards):
             records[field] = graph[name][mask]
         stream.write(records.tobytes())
     with (output/"clpa_layout.log").open("xb") as log:
-        subprocess.run([str(root()/".build/arbor-clpa-layout"), "--input", str(path),
+        subprocess.run([str(binary), "--input", str(path),
                         "--output", str(output/"clpa_routes.bin"), "--shards", str(shards)],
                        stdout=log, stderr=subprocess.STDOUT, check=True)
     route = np.fromfile(output/"clpa_routes.bin", dtype="<i4")
@@ -70,26 +70,37 @@ def clpa_layout(data, addresses, output, shards):
 
 def build_layout(dataset, config, receipt=None, build=None):
     dataset = Path(dataset).resolve()
-    _, library = build or ensure_build()
-    prepared = prepare(dataset, receipt)
     method = config["method"]
     arm = config.get("ablation", "Full")
     if arm == "NoAdmission":
         arm = "Full"
-    params = dict(method=method, ablation=arm, shards=config["shards"],
-                  half_seconds=config["half_seconds"], group_size=config["group_size"],
-                  tolerance=config["tolerance"], dataset_sha256=sha(dataset/"manifest.json"),
-                  fusion_sha256=sha(Path(config.get("fusion_model", root()/"models/fusion.json"))),
-                  kernel_sha256=sha(library), prepared_identity=load(prepared/"complete.json")["identity"],
-                  producer=producer("src/arbor/history/layout.py", "src/arbor/history/grouping.py",
-                                    "src/arbor/history/kernel.py", "src/arbor/history/relations.py"))
-    if method == "CLPA":
-        params["clpa_sha256"] = sha(root()/".build/arbor-clpa-layout")
+    params = dict(method=method, shards=config["shards"], dataset_sha256=sha(dataset/"manifest.json"),
+                  producer=producer("src/arbor/history/layout.py"))
+    library = prepared = clpa_binary = None
+    if method == "Monoxide":
+        verify(dataset, receipt)
+    else:
+        artifacts = build or ensure_build()
+        if method == "CLPA":
+            prepared = prepare_counts(dataset, receipt)
+            clpa_binary = Path(artifacts[2]) if len(artifacts) > 2 else root()/".build/arbor-clpa-layout"
+            params["clpa_sha256"] = sha(clpa_binary)
+        else:
+            library = artifacts[1]
+            prepared = prepare(dataset, receipt)
+            params.update(ablation=arm, half_seconds=config["half_seconds"], group_size=config["group_size"],
+                          tolerance=config["tolerance"],
+                          fusion_sha256=sha(Path(config.get("fusion_model", root()/"models/fusion.json"))),
+                          kernel_sha256=sha(library),
+                          producer=producer("src/arbor/history/layout.py", "src/arbor/history/grouping.py",
+                                            "src/arbor/history/kernel.py", "src/arbor/history/relations.py"))
+        params["prepared_identity"] = load(prepared/"complete.json")["identity"]
     output = dataset/"layouts"/fingerprint(params)[:20]
-    return cached_directory(output, params, lambda staging: _build_layout(dataset, config, library, prepared, staging))
+    return cached_directory(output, params,
+                            lambda staging: _build_layout(dataset, config, library, prepared, staging, clpa_binary))
 
 
-def _build_layout(dataset, config, library, prepared, output):
+def _build_layout(dataset, config, library, prepared, output, clpa_binary=None):
     method, shards = config["method"], config["shards"]
     arm = config.get("ablation", "Full")
     if arm == "NoAdmission":
@@ -98,17 +109,17 @@ def _build_layout(dataset, config, library, prepared, output):
     details = {}
     if method == "Monoxide":
         route = np.array([int(a[-8:], 16) % shards for a in addresses], np.int32)
+    elif method == "CLPA":
+        with np.load(prepared/"graph.npz") as graph:
+            route = clpa_layout(graph, addresses, output, shards, clpa_binary)
     else:
         kernel = Kernel(library)
         data = load_history(dataset, kernel, prepared)
-        if method == "CLPA":
-            route = clpa_layout(data, addresses, output, shards)
-        else:
-            s = snapshot(data, int(data["t"][-1]), inclusive=True, half=config["half_seconds"])
-            route, labels, tree, details = plan_snapshot(data, s, load(Path(config.get("fusion_model", root()/"models/fusion.json"))),
-                                                         dict(config, ablation=arm), kernel)
-            np.savez(output/"hierarchy.npz", **tree)
-            np.save(output/"groups.npy", labels.astype(np.int32))
+        s = snapshot(data, int(data["t"][-1]), inclusive=True, half=config["half_seconds"])
+        route, labels, tree, details = plan_snapshot(data, s, load(Path(config.get("fusion_model", root()/"models/fusion.json"))),
+                                                     dict(config, ablation=arm), kernel)
+        np.savez(output/"hierarchy.npz", **tree)
+        np.save(output/"groups.npy", labels.astype(np.int32))
     if len(route) != len(addresses) or np.any((route < 0) | (route >= shards)):
         raise ValueError("layout coverage mismatch")
     np.save(output/"routes.npy", route.astype(np.int32))

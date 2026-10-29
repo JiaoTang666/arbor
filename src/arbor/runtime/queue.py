@@ -14,7 +14,8 @@ from arbor.build import ensure_build
 from arbor.data import ingest, make_demo, verify, verification_receipt
 from arbor.cache import file_lock
 from arbor.history.layout import build_layout
-from arbor.io import load, root, save, sha
+from arbor.io import load, resolve_path, root, save, sha
+from .artifacts import build_snapshot, load_build, relative_path, resolve_run_path
 from .resources import RunLock, alive, birth, check_resources, tree_rss
 from .worker import clean_environment, execute
 
@@ -100,9 +101,20 @@ def model_snapshots(directory, config):
     record = directory/"models.json"
     if record.exists():
         models = load(record)
-        for row in models.values():
-            if sha(row["path"]) != row["sha256"]:
+        for key, row in models.items():
+            # v0.3.1 stored absolute paths. The canonical run-local copy survives a move.
+            canonical = directory/"models"/(key.removesuffix("_model")+".json")
+            path = canonical if canonical.is_file() else resolve_run_path(directory, row["path"])
+            if sha(path) != row["sha256"]:
                 raise ValueError("run model snapshot changed")
+            if path != canonical:
+                canonical.parent.mkdir(exist_ok=True)
+                shutil.copyfile(path, canonical)
+                if sha(canonical) != row["sha256"]:
+                    raise ValueError("run model changed while restoring its snapshot")
+                path = canonical
+            row["path"] = relative_path(directory, path)
+        save(record, models)
     else:
         models = {}
         for key, fallback in (("fusion_model", "fusion"), ("admission_model", "admission")):
@@ -110,9 +122,40 @@ def model_snapshots(directory, config):
             destination = directory/"models"/(fallback+".json")
             destination.parent.mkdir(exist_ok=True)
             shutil.copyfile(source, destination)
-            models[key] = dict(path=str(destination), sha256=sha(destination), source=str(source))
+            models[key] = dict(path=relative_path(directory, destination), sha256=sha(destination), source=str(source))
         save(record, models)
-    return {key: row["path"] for key, row in models.items()}
+    return {key: str(resolve_run_path(directory, row["path"])) for key, row in models.items()}
+
+
+def build_snapshots(directory):
+    return build_snapshot(directory, ensure_build)
+
+
+def dataset_location(directory, plan, dataset=None):
+    """Persist the dataset relative to a run; explicit relocation preserves its identity."""
+    candidate = (resolve_path(dataset) if dataset is not None
+                 else resolve_run_path(directory, plan["config"]["dataset"]))
+    marker = directory/"dataset_identity.json"
+    identity = load(marker) if marker.exists() else {}
+    expected = identity.get("manifest_sha256")
+    if dataset is not None and not expected:
+        original = resolve_run_path(directory, plan["config"]["dataset"])/"manifest.json"
+        if not original.is_file():
+            raise ValueError("original dataset identity is unavailable; restore it or start a new run directory")
+        expected = sha(original)
+    if expected:
+        if not (candidate/"manifest.json").is_file():
+            raise ValueError("run dataset is unavailable; use arbor resume RUN --dataset PATH to relocate it")
+        if sha(candidate/"manifest.json") != expected:
+            raise ValueError("relocated dataset does not match this run's original manifest")
+    elif dataset is not None and not (candidate/"manifest.json").is_file():
+        raise ValueError("relocated dataset has no manifest.json")
+    value = relative_path(directory, candidate)
+    plan["config"]["dataset"] = value
+    for case in plan["cases"]:
+        case["dataset"] = value
+    save(directory/"plan.json", plan)
+    return candidate
 
 
 def finish(target, case):
@@ -128,6 +171,7 @@ def prepare_case(directory, case):
         save(directory/"preparation_process.json", dict(pid=process.pid, birth_ticks=birth(process.pid)))
         try:
             while process.poll() is None:
+                check_resources(directory, case["resources"], dataset=case["dataset"])
                 if tree_rss(process.pid) > case["resources"]["offline_rss_gib"]*2**30:
                     raise RuntimeError("offline preparation exceeded its RSS allowance")
                 time.sleep(1)
@@ -141,7 +185,7 @@ def prepare_case(directory, case):
                 except subprocess.TimeoutExpired:
                     os.killpg(process.pid, signal.SIGKILL)
                     process.wait()
-    return load(directory/"prepared"/(case["id"]+".json"))["layout"]
+    return str(resolve_run_path(directory, load(directory/"prepared"/(case["id"]+".json"))["layout"]))
 
 
 def run(directory):
@@ -167,19 +211,18 @@ def run(directory):
                 progress(label, status=label)
                 return
             progress("BUILD")
-            built = ensure_build()
-            if built:
-                save(directory/"build.json", dict(binary=str(built[0]), library=str(built[1]),
-                     binary_sha256=sha(built[0]), library_sha256=sha(built[1])))
-            dataset = Path(plan["config"]["dataset"])
+            built = build_snapshots(directory)
+            dataset = dataset_location(directory, plan)
             if plan["recipe"] == "demo" and not dataset.exists():
                 raw = make_demo(root()/"data/demo_raw")
                 ingest(raw/"history.csv", raw/"test.csv", dataset)
             manifest = verify(dataset)
-            save(directory/"dataset_identity.json", verification_receipt(dataset, manifest))
+            receipt = verification_receipt(dataset, manifest)
+            receipt["directory"] = relative_path(directory, dataset)
+            save(directory/"dataset_identity.json", receipt)
             models = model_snapshots(directory, plan["config"])
             for original in plan["cases"]:
-                case = dict(original, **models)
+                case = dict(original, dataset=str(dataset), **models)
                 control = load(directory/"control.json") if (directory/"control.json").exists() else {}
                 if control.get("request") in ("pause", "stop"):
                     progress("PAUSED" if control["request"] == "pause" else "STOPPED",
@@ -197,7 +240,7 @@ def run(directory):
                     raise RuntimeError(f"case {case['id']} has an interrupted execution; inspect its logs before starting a new run")
                 progress("ADMISSION", current=case["id"], method=case["method"], shards=case["shards"],
                          inject_tps=case["inject_tps"], accepted_transactions=0, completed_transactions=0)
-                check_resources(directory, case["resources"], admission=True)
+                check_resources(directory, case["resources"], admission=True, dataset=dataset)
                 progress("LAYOUT")
                 layout = prepare_case(directory, case)
                 target.mkdir(parents=True)
@@ -218,7 +261,7 @@ def run(directory):
             raise
 
 
-def launch(directory):
+def launch(directory, dataset=None):
     directory = Path(directory).resolve()
     # Never start a second queue while its previous controller/children are live.
     with RunLock(directory):
@@ -228,6 +271,8 @@ def launch(directory):
             for item in load(path):
                 if alive(item):
                     raise RuntimeError("an incomplete case still owns live processes")
+        plan = load(directory/"plan.json")
+        dataset_location(directory, plan, dataset)
         save(directory/"control.json", dict(request=None))
         save(directory/"status.json", dict(status="STARTING", stage="STARTING"))
     log = (directory/"controller.log").open("ab")
@@ -296,8 +341,10 @@ if __name__ == "__main__":
         directory = Path(a.directory)
         plan = load(directory/"plan.json")
         config = dict(next(c for c in plan["cases"] if c["id"] == a.case),
-                      **{k: v["path"] for k, v in load(directory/"models.json").items()})
-        built = load(directory/"build.json")
-        layout = build_layout(config["dataset"], config, receipt=directory/"dataset_identity.json",
-                              build=(Path(built["binary"]), Path(built["library"])))
-        save(directory/"prepared"/(a.case+".json"), dict(layout=str(layout)))
+                      **{k: str(resolve_run_path(directory, v["path"])) for k, v in load(directory/"models.json").items()})
+        dataset = resolve_run_path(directory, plan["config"]["dataset"])
+        config["dataset"] = str(dataset)
+        receipt = load(directory/"dataset_identity.json")
+        receipt["directory"] = str(dataset)
+        layout = build_layout(dataset, config, receipt=receipt, build=load_build(directory))
+        save(directory/"prepared"/(a.case+".json"), dict(layout=relative_path(directory, layout)))

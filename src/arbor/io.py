@@ -10,6 +10,14 @@ def root():
     return Path(__file__).resolve().parents[2]
 
 
+def resolve_path(value, base=None):
+    """Expand a user path, resolving relative values against an explicit base."""
+    path = Path(value).expanduser()
+    if not path.is_absolute() and base is not None:
+        path = Path(base)/path
+    return path.resolve()
+
+
 def sha(path):
     digest = hashlib.sha256()
     with Path(path).open("rb") as stream:

@@ -1,5 +1,7 @@
 # Acceptance evidence
 
+`portability_acceptance.json` covers v0.4.0 build snapshots, moved checkout/run/dataset paths, resume without the shared build cache, native completion and the naming/layout identity checks.
+
 `real_xblock_acceptance.json` covers v0.3.1 verification using an original CSV prefix from the official paper-period archive: 10,000 accepted historical transactions, 1,000 test transactions, exact-value/source-row checks and completed native runs for all three methods.
 
 `source_release_acceptance.json` covers v0.3.0 official-source imports, exact-value and provenance checks, three-method execution on the imported fixture, result export and author metadata validation.

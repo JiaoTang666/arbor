@@ -9,7 +9,7 @@ authors:
   - family-names: "Huang"
     given-names: "Jie"
     affiliation: "Zhejiang University of Science and Technology"
-version: 0.3.1
-date-released: 2026-10-28
+version: 0.4.0
+date-released: 2026-10-29
 license: MIT
 repository-code: "https://github.com/JiaoTang666/arbor"

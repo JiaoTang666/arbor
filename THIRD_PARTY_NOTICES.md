@@ -4,6 +4,8 @@
 
 The Go engine is derived from [BlockEmulator](https://github.com/HuangLab-SYSU/block-emulator), Copyright (c) 2023 HuangLab-SYSU, distributed under MIT. The complete original notice remains at `native/engine/LICENSE`. The engine includes subsequent experimental protocol and telemetry extensions; repository provenance records identify the extracted source files. The upstream project does not endorse these modifications.
 
+[Native engine guide](docs/native-engine.md) identifies the supported method paths and inherited extensions, including integration tests that require external fixtures.
+
 ## Dependencies
 
 `native/engine/go.mod` and `go.sum` identify the Go dependency versions; `requirements.lock` identifies Python packages. They retain their respective upstream licenses. Dependencies are downloaded by the build tools, not copied into this repository. Run `go list -m all` inside `native/engine` to inspect the Go dependency graph.

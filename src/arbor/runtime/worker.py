@@ -82,7 +82,7 @@ def configure(target, case, dataset, layout):
 
 
 def execute(target, case, dataset, layout, progress, build=None):
-    binary, _ = build or ensure_build()
+    binary = (build or ensure_build())[0]
     run, settings, total = configure(target, case, dataset, layout)
     check_ports(load(run/"ipTable.json"))
     env = clean_environment(settings)
@@ -118,7 +118,7 @@ def execute(target, case, dataset, layout, progress, build=None):
         if failed:
             raise RuntimeError(f"child {failed[0].pid} exited {failed[0].returncode}; see native logs")
         if now >= next_check:
-            state = check_resources(target, case["resources"], children)
+            state = check_resources(target, case["resources"], children, dataset=dataset)
             peak_rss = max(peak_rss, state["owned_rss_gib"])
             state.update(unix=time.time(), elapsed_seconds=now-begun)
             save(target/"resources.json", state)

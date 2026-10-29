@@ -1,15 +1,10 @@
-"""Background-only adapter for the validated v2 source/activity facts.
+"""Publish source and activity facts at the graph's accepted-prefix watermark.
 
-The caller replays the accepted compact stream only up to the graph publication
-cutoff, then publishes both at EXACTLY the same source watermark. In particular,
-an hourly graph publication before its triggering transaction must also happen
-before observing that transaction here. Runtime placement queries use snapshot(),
-never publish(): the latter intentionally performs one O(accounts) aggregation.
-
-This module does not choose routes, predict work, or infer committed creation from
-binding. Historical endpoints and pending labels come from a v2 checkpoint, not
-the old endpoint-count arrays. Parent/source and actual route ownership are kept
-separate, so a family may legitimately occupy several shards.
+Replay stops at the graph publication cutoff, including before a triggering
+transaction when the graph is published first. Background publish() aggregates
+accounts in O(accounts); runtime queries read the cached snapshot(). Historical
+facts are loaded from the source-forest checkpoint. Source relationships and
+route ownership are tracked separately, allowing a family to span shards.
 """
 import copy
 import hashlib

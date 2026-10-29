@@ -1,3 +1,5 @@
+//go:build legacy_integration
+
 package committee
 
 import (
@@ -10,10 +12,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/boltdb/bolt"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/trie"
 	"math/big"
 	"net"
 	"os"
@@ -393,45 +391,4 @@ wait:
 	}
 	write("result.json", map[string]interface{}{"status": "PASS", "proposal": env.DecisionID, "account": env.Account, "source": env.SourceShard, "target": env.TargetShard, "route_version": s.authority.routeVersion, "post_tx_hash": hex.EncodeToString(tx.TxHash), "target_block": targetHead.Header.Number, "source_nonce": source.Nonce, "target_nonce": target.Nonce, "commit_report_seen": committed, "migration_executed": true, "scope": "one actual SAA decision at quiescent boundary; synthetic native workload; not async/performance proof"})
 	t.Logf("SAA NATIVE PASS proposal=%s route_version=%d source_nonce=%d target_nonce=%d", env.DecisionID, s.authority.routeVersion, source.Nonce, target.Nonce)
-}
-
-func readSAAAccount(root string, shard uint64, account string) (*core.Block, *core.AccountState, []byte, error) {
-	db, err := bolt.Open(filepath.Join(root, fmt.Sprintf("exp/database/chainDB/S%d_N0", shard)), 0600, &bolt.Options{ReadOnly: true, Timeout: time.Second})
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	var head *core.Block
-	err = db.View(func(tx *bolt.Tx) error {
-		heads, blocks := tx.Bucket([]byte("newestBlockHash")), tx.Bucket([]byte("block"))
-		if heads == nil || blocks == nil {
-			return fmt.Errorf("chain absent")
-		}
-		data := blocks.Get(heads.Get([]byte("OnlyNewestBlock")))
-		if len(data) == 0 {
-			return fmt.Errorf("head absent")
-		}
-		head = core.DecodeB(data)
-		return nil
-	})
-	db.Close()
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	state, err := rawdb.NewLevelDBDatabase(filepath.Join(root, fmt.Sprintf("exp/database/mptDB/ldb/s%d/n0", shard)), 0, 1, "saa-readonly", true)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	defer state.Close()
-	st, err := trie.New(trie.TrieID(common.BytesToHash(head.Header.StateRoot)), trie.NewDatabase(state))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	raw, err := st.Get([]byte(account))
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	if len(raw) == 0 {
-		return nil, nil, nil, fmt.Errorf("account absent")
-	}
-	return head, core.DecodeAS(raw), raw, nil
 }

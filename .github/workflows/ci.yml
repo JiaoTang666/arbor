@@ -25,6 +25,10 @@ jobs:
       - run: .venv/bin/python scripts/check_parity.py
       - run: go test -p 2 ./networks ./supervisor ./supervisor/committee ./supervisor/signal ./build ./core ./chain
         working-directory: native/engine
+      - run: go test -p 2 -run '^$' ./...
+        working-directory: native/engine
+      - run: go test -p 2 -tags legacy_integration -run '^$' ./...
+        working-directory: native/engine
       - run: ./arbor data paper --json
       - run: .venv/bin/python scripts/make_xblock_fixture.py data/raw/demo.zip
       - run: ./arbor data xblock --source data/raw/demo.zip --history-count 2400 --test-count 120 --output data/xblock-demo --json

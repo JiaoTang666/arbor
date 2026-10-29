@@ -15,6 +15,8 @@ Arbor exposes one configuration resolver, one native runner and one complete-tra
 
 `native/layout/kernel.cpp` implements grouping and placement. `native/engine` provides the common BlockEmulator-based execution path, including PBFT, relay and dynamic CLPA. Scientific modules exchange explicit arrays, model bundles and configuration objects; the CLI delegates process management to `runtime`.
 
+The native path runs from `main.go` and `build/` through `supervisor/committee/` to `consensus_shard/pbft_all/` and `chain/`. Arbor adds first-placement scoring and source-forest observations at the supervisor; Monoxide uses fixed address placement, and CLPA uses epoch repartitioning. [Native engine guide](native-engine.md) maps these paths and separates inherited protocol extensions from the supported recipes.
+
 ## Artifact boundaries
 
 - **Dataset:** `manifest.json` plus ordered CSV, dense-ID arrays, source timestamps and entry relations. No layout chosen from test results.

@@ -1,7 +1,6 @@
-"""Bounded active topology, exact omission ledger, lazy adjacency.
+"""Bounded temporal topology with omitted-mass accounting and lazy adjacency.
 
-The sealed v1 remains a reference. Resource overflow reduces evidence quality,
-never pauses native admission. This is not a calibrated demand predictor.
+Capacity limits compact graph evidence while native admission continues.
 """
 from dataclasses import dataclass
 from collections import deque

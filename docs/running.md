@@ -1,5 +1,11 @@
 # Run management
 
+Paths in custom YAML are resolved relative to that file; command-line paths are resolved relative to the calling directory. Both support `~`.
+
+Each run retains its own engine, C++ layout library, CLPA layout tool and model snapshots. Resume keeps those native artifacts after a repository update. Internal artifact paths are relative to the run directory. If a move changes the relative location of the external dataset, use `arbor resume <run> --dataset <location>`; its manifest must match the original input. Successful-case finalization remains recoverable without executing its transactions again.
+
+For pre-0.4 runs, the existing build must still be available and match the recorded identity before it can be adopted as a run snapshot. Existing reference measurements are not rewritten during migration.
+
 ## Inspect, pause and stop
 
 `arbor status <run>` displays progress. `arbor pause <run>` completes the active case, saves its results and stops admission at the next case boundary. `arbor resume <run>` continues the remaining plan. `arbor stop <run>` stops the controller and its owned processes, preserving the interrupted case. Stop is immediate; pause is appropriate when the current measurement should finish.

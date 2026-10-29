@@ -2,9 +2,25 @@
 import math
 import numpy as np
 
+
+def edge_keys(u, v):
+    return (u.astype(np.uint64) << np.uint64(32)) | v.astype(np.uint64)
+
+
+def _endpoints(keys):
+    return dict(sender=(keys >> np.uint64(32)).astype(np.int32),
+                recipient=(keys & np.uint64(0xffffffff)).astype(np.int32))
+
+
+def aggregate_counts(u, v):
+    """Directed historical edge counts, without temporal or forest state."""
+    keys, counts = np.unique(edge_keys(u, v), return_counts=True)
+    return dict(_endpoints(keys), count=counts.astype(np.int64))
+
+
 def aggregate_graph(u, v, timestamps, start, as_of, bin_seconds, half_lives):
     """One ordered endpoint pair per directed edge, including self edges."""
-    keys = (u.astype(np.uint64) << np.uint64(32)) | v.astype(np.uint64)
+    keys = edge_keys(u, v)
     unique, inv = np.unique(keys, return_inverse=True)
     E = len(unique)
     first = np.full(E, np.iinfo(np.int64).max, np.int64)
@@ -17,9 +33,7 @@ def aggregate_graph(u, v, timestamps, start, as_of, bin_seconds, half_lives):
     bins = (timestamps - start) // bin_seconds
     B = int(bins.max()) + 1
     window_key, window_count = np.unique(inv.astype(np.int64) * B + bins, return_counts=True)
-    graph = dict(sender=(unique >> np.uint64(32)).astype(np.int32),
-                 recipient=(unique & np.uint64(0xffffffff)).astype(np.int32),
-                 count=np.bincount(inv, minlength=E).astype(np.int64),
+    graph = dict(_endpoints(unique), count=np.bincount(inv, minlength=E).astype(np.int64),
                  first_timestamp=first, last_timestamp=last,
                  decayed_mass=mass)
     windows = dict(edge=(window_key // B).astype(np.int32),

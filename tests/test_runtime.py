@@ -9,7 +9,8 @@ import pytest
 from arbor.config import cases, resolve
 from arbor.io import load, save
 from arbor.runtime.metrics import collect
-from arbor.runtime.resources import RunLock, check_ports, port_table
+from arbor.runtime.resources import RunLock, check_ports, port_table, filesystem_space, check_resources
+from arbor.runtime import resources
 from arbor.runtime.worker import REMOVED_ENV, clean_environment
 from arbor.runtime.queue import retain_and_cleanup
 
@@ -97,3 +98,28 @@ def test_cleanup_refuses_link_to_external_data(tmp_path):
     with pytest.raises(ValueError, match="symlink"):
         retain_and_cleanup(target, False)
     assert outside.read_text() == "keep"
+
+
+def test_space_sampling_merges_roles_on_the_same_filesystem(tmp_path, monkeypatch):
+    calls = []
+    original = resources.shutil.disk_usage
+    def usage(path):
+        calls.append(path)
+        return original(path)
+    monkeypatch.setattr(resources.shutil, "disk_usage", usage)
+    rows = filesystem_space(tmp_path, tmp_path/"dataset")
+    assert len(calls) == len({row["device"] for row in rows})
+    shared = next(row for row in rows if "results" in row["roles"])
+    assert "dataset_cache" in shared["roles"]
+
+
+def test_resource_admission_checks_separate_dataset_cache_filesystem(tmp_path, monkeypatch):
+    limits = resolve("demo")["resources"]
+    def sample(directory, dataset):
+        return dict(available_gib=100, filesystems=[
+            dict(paths=[str(directory)], roles=["results"], free_gib=100),
+            dict(paths=[str(dataset)], roles=["dataset_cache"], free_gib=1),
+            dict(paths=["/tmp"], roles=["system"], free_gib=100)])
+    monkeypatch.setattr(resources, "snapshot", sample)
+    with pytest.raises(RuntimeError, match="external-data"):
+        check_resources(tmp_path, limits, admission=True, dataset=tmp_path/"external-data")

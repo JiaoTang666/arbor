@@ -141,7 +141,14 @@ def collect_costs(directory, day, family, *, small=False):
     return records
 
 
-def train(kind, dataset, output, *, small=False):
+def train(kind, dataset, output, *, small=False, fusion_model=None):
+    if fusion_model is not None and (kind != "admission" or small):
+        raise ValueError("--fusion-model applies to admission training days 17–20; --small has no late windows")
+    fusion_input = None
+    if kind == "admission" and not small:
+        selected = Path(fusion_model or root()/"models/fusion.json").expanduser().resolve()
+        later = load(selected)
+        fusion_input = dict(path=str(selected), sha256=sha(selected), windows=list(range(17, 21)))
     output = Path(output).resolve()
     output.mkdir(parents=True, exist_ok=False)
     if small:
@@ -155,7 +162,10 @@ def train(kind, dataset, output, *, small=False):
         model = fit_fusion(data, kernel, (1, 3) if small else (12, 16))
     else:
         early = fit_fusion(data, kernel, (1, 3) if small else (8, 12))
-        later = early if small else load(root()/"models/fusion.json")
+        if small:
+            later = early
+        else:
+            save(output/"later_fusion.json", later)
         save(output/"early_fusion.json", early)
         records = []
         for day in ((4,) if small else range(13, 21)):
@@ -168,5 +178,7 @@ def train(kind, dataset, output, *, small=False):
     receipt = dict(status="PASS", kind=kind, small_fixture=small, model=str(output/"model.json"),
                    model_sha256=sha(output/"model.json"), dataset_sha256=sha(dataset/"manifest.json"),
                    native_experiments_started=0)
+    if fusion_input is not None:
+        receipt["fusion_input"] = fusion_input
     save(output/"complete.json", receipt)
     return receipt

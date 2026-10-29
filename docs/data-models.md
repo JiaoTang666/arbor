@@ -70,3 +70,13 @@ Fusion training uses prefixes at historical days 12 and 16 and labels from their
 Admission fitting uses equal day/scene/point weights, training-only normalization and ridge coefficient 0.01. Each training directory retains prepared windows, label records, exported model and hashes. `--small` selects short synthetic historical windows for validation. The default experiment path never trains, and neither command overwrites the frozen model.
 
 Select exported models with `arbor run ... --fusion-model <path> --admission-model <path>`. Each run snapshots the selected files and records their hashes; the fusion model also participates in the layout cache identity.
+
+For admission training on your own full historical input, pass the fusion model for days 17–20 explicitly:
+
+```bash
+./arbor train fusion --dataset data/paper --output runs/fusion-full
+./arbor train admission --dataset data/paper \
+  --fusion-model runs/fusion-full/model.json --output runs/admission-full
+```
+
+The earlier admission windows retain their day-8/day-12 fit. Without `--fusion-model`, later windows use the supplied frozen fusion model. Training records the selected model and its hash. The `--small` fixture has no later window and does not accept this option.

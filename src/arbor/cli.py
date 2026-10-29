@@ -2,7 +2,6 @@
 import argparse
 from datetime import datetime, timezone
 import json
-import os
 from pathlib import Path
 import shutil
 import sys
@@ -11,7 +10,7 @@ import uuid
 
 from . import __version__
 from .config import RECIPES, cases, resolve
-from .io import load, root, save
+from .io import load, resolve_path, root, save
 
 
 def parser():
@@ -44,6 +43,7 @@ def parser():
             cmd.add_argument("--plot", action="store_true")
         elif command == "resume":
             cmd.add_argument("--detach", action="store_true")
+            cmd.add_argument("--dataset", type=Path, help="relocate the same verified dataset")
     sub.add_parser("doctor", help="check tools, builds and host resources")
     data = sub.add_parser("data", help="find official sources or prepare ordered transaction data")
     data.add_argument("source", choices=("demo", "paper", "prepare", "xblock"))
@@ -60,6 +60,7 @@ def parser():
     train.add_argument("--dataset", type=Path, default=root()/"data/paper")
     train.add_argument("--output", type=Path)
     train.add_argument("--small", action="store_true", help="small software-validation fixture")
+    train.add_argument("--fusion-model", type=Path, help="fusion bundle for admission training days 17–20")
     # Common formatting options also work after the subcommand.
     for cmd in sub.choices.values():
         cmd.add_argument("--json", action="store_true", default=argparse.SUPPRESS)
@@ -135,6 +136,12 @@ def watch(directory, args):
 def main(argv=None):
     args = parser().parse_args(argv)
     try:
+        for name in ("config", "dataset", "output", "directory", "history", "test", "fusion_model", "admission_model"):
+            value = getattr(args, name, None)
+            if value is not None:
+                setattr(args, name, resolve_path(value))
+        if getattr(args, "archives", None):
+            args.archives = [resolve_path(path) for path in args.archives]
         if args.command == "doctor":
             from .runtime.resources import snapshot
             build = load(root()/".build/build.json") if (root()/".build/build.json").exists() else None
@@ -178,7 +185,7 @@ def main(argv=None):
                 if (directory/"complete.json").exists():
                     emit(load(directory/"summary.json"), args)
                     return
-                pid = launch(directory)
+                pid = launch(directory, dataset=args.dataset)
                 if args.detach:
                     emit(dict(run=str(directory), controller_pid=pid), args)
                 else:
@@ -223,7 +230,7 @@ def main(argv=None):
         elif args.command == "train":
             from .training.pipeline import train
             destination = args.output or root()/"runs"/("train_"+args.model+"_"+uuid.uuid4().hex[:8])
-            emit(train(args.model, args.dataset, destination, small=args.small), args)
+            emit(train(args.model, args.dataset, destination, small=args.small, fusion_model=args.fusion_model), args)
     except (ValueError, RuntimeError, OSError, KeyError) as error:
         emit(dict(status="ERROR", message=str(error)), args)
         raise SystemExit(1) from None

@@ -6,10 +6,26 @@ from arbor.data import verify
 from arbor.cache import cached_directory, producer
 from arbor.forest.source import SourceForest
 from arbor.io import load, save, sha
-from .representation import aggregate_graph, temporal_profiles
+from .representation import aggregate_counts, aggregate_graph, temporal_profiles
 from .relations import cohort_credit
 
 ONLINE_HALF = (21600, 86400, 604800)
+
+
+def prepare_counts(dataset, receipt=None):
+    """Build the historical count graph used by CLPA."""
+    dataset = Path(dataset)
+    verify(dataset, receipt)
+    identity = dict(dataset_sha256=sha(dataset/"manifest.json"),
+                    producer=producer("src/arbor/history/prepare.py", "src/arbor/history/representation.py",
+                                      "src/arbor/cache.py", "src/arbor/io.py"))
+    def build(output):
+        u, v = [np.load(dataset/"history"/(name+".npy"), mmap_mode="r")
+                for name in ("sender", "recipient")]
+        graph = aggregate_counts(u, v)
+        np.savez(output/"graph.npz", **graph)
+        return dict(accepted=len(u), edges=len(graph["count"]))
+    return cached_directory(dataset/"counts", identity, build)
 
 
 def prepare(dataset, receipt=None):

@@ -85,10 +85,13 @@ cd arbor
 ./arbor status runs/<run-id>
 ./arbor pause runs/<run-id>
 ./arbor resume runs/<run-id>
+./arbor resume runs/<run-id> --dataset /path/to/moved-data
 ./arbor stop runs/<run-id>
 ```
 
-配置优先级为CLI、YAML、配方默认值；嵌套资源设置逐项合并。`--dry-run`展示实际任务清单。`pause`让当前组完成后暂停；`stop`停止本次运行的进程并保留文件；`resume`跳过完成组，补做中断的结果保存和清理。交易执行中断后，可检查现场并在新运行目录中重试。
+配置优先级为CLI、YAML、配方默认值。YAML路径相对配置文件解析，CLI路径相对调用目录解析，两者均展开`~`；嵌套资源设置逐项合并。`--dry-run`展示实际任务清单。`pause`让当前组完成后暂停；`stop`停止本次运行的进程并保留文件；`resume`跳过完成组，补做中断的结果保存和清理。交易执行中断后，可检查现场并在新运行目录中重试。
+
+每次运行保存独立的执行引擎、布局工具和模型快照，软件升级后续跑仍使用原生构建。运行目录可以移动；数据集相对位置发生变化时，使用`resume --dataset`核对原输入身份并重新定位。
 
 **默认保留数据库。** 添加`--cleanup-db`后，成功组在结果保存完成后清理数据库与原生日志；失败组保留。`--json`便于脚本调用，`--no-color`关闭颜色。
 
@@ -110,7 +113,7 @@ cd arbor
   --fusion-model runs/fusion/model.json --admission-model runs/admission/model.json
 ```
 
-完整训练将`--small`换为`--dataset data/paper`。每次运行保存所选模型的快照。[数据与训练文档](docs/data-models.md)介绍自定义输入、数据窗口与时序训练流程。
+完整训练将`--small`换为`--dataset data/paper`。接入模型训练可用`--fusion-model <路径>`指定后期历史窗口的融合模型；小型训练样例只使用早期窗口。每次运行保存所选模型的快照。[数据与训练文档](docs/data-models.md)介绍自定义输入、数据窗口与时序训练流程。
 
 ## 开发
 

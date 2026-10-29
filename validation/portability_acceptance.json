@@ -1,0 +1,80 @@
+{
+  "version": "0.4.0",
+  "date": "2026-10-29",
+  "scope": "Software validation with synthetic transactions",
+  "python_tests": 62,
+  "python_go_parity_cases": 32,
+  "go_default_compile": "PASS",
+  "go_legacy_tag_compile": "PASS",
+  "go_regression": "PASS",
+  "native_methods": [
+    {
+      "method": "Arbor",
+      "completed": 120,
+      "unfinished": 0,
+      "total_stages": 148,
+      "binary_sha256": "55f53ecf46902e456b5f98918d435563294d1e45105439c45286c6d5744f7e1f"
+    },
+    {
+      "method": "Monoxide",
+      "completed": 120,
+      "unfinished": 0,
+      "total_stages": 223,
+      "binary_sha256": "55f53ecf46902e456b5f98918d435563294d1e45105439c45286c6d5744f7e1f"
+    },
+    {
+      "method": "CLPA",
+      "completed": 120,
+      "unfinished": 0,
+      "total_stages": 220,
+      "binary_sha256": "55f53ecf46902e456b5f98918d435563294d1e45105439c45286c6d5744f7e1f"
+    }
+  ],
+  "paused_after_first_case": true,
+  "checkout_run_dataset_moved": true,
+  "path_with_spaces": true,
+  "explicit_dataset_relocation": "PASS",
+  "shared_build_cache_absent_on_resume": true,
+  "pinned_build_unchanged": true,
+  "completed_case_not_reexecuted": true,
+  "export": "PASS",
+  "historical_artifact_parity": {
+    "baseline_commit": "7d029407b8dd4593c7dbfe4b6cdbd4d4fd3f253f",
+    "matched": 25,
+    "hashes": {
+      "layout/groups.npy": "d8a8ebcb4cbd4969b52707f6cb33176b49183de56a6939a3dd3827baefb73a9b",
+      "layout/initial_ledger.json": "784a3f0fd12807c96a36cc23b9a0519993706a8a21b17b2e2d4e1e8214b15944",
+      "layout/hierarchy.npz": "8726a01cf7c920bf9099a05d61ed7bb32fdc1acc687994c913f5880999b4392b",
+      "layout/routes.npy": "881b669658d8b7653b3bf45ddb903d0f268bda5307a7328e5d10c837214ba267",
+      "prepared/forest_seed/active_mass.npy": "c2c4c0a1874c77cba040de01cd981d2c08908015d9695bf88aaedb3482cc41b8",
+      "prepared/forest_seed/arrival.npy": "40ba427a07f3e4fd28ac04a3d487cf440f2579aa24eb2a3f8b78a2d04679df05",
+      "prepared/forest_seed/birth_seq.npy": "471702e62ac6956cff73d82ffd3acaf40320ad2e452e071bdefb87d34cac17d8",
+      "prepared/forest_seed/birth_time.npy": "51857d2616ea94cb721921c8908816829009701655f62fb297eba91e7dd5740c",
+      "prepared/forest_seed/followup.npy": "828365e80fc5779807503746d5655c58de7973d869bf71528b938701ead05ad9",
+      "prepared/forest_seed/label_mass.npy": "1f1e67e894472ac803134441fd0a79950ccc2089e440d26da409cb35f3162f97",
+      "prepared/forest_seed/manifest.json": "d95aaa3c674f627343cb93f0451f47576897d7073b6de559b9404fb399f547fb",
+      "prepared/forest_seed/mass.npy": "40ba427a07f3e4fd28ac04a3d487cf440f2579aa24eb2a3f8b78a2d04679df05",
+      "prepared/forest_seed/mature_count.npy": "025f196a7c5630ec2484a0d8613434341b8179314ebf43757027e46950451273",
+      "prepared/forest_seed/parent.npy": "84f56a07a261c8e570a0314121c341f6c82193c10c1fd1bb1250d9e0735a459c",
+      "prepared/forest_seed/root.npy": "5587212a96bf2f350ecad7332922694ceb095c1394d0be10a036ab6f0828d9e9",
+      "prepared/forest_seed/state.npy": "00e2ff264f4a6c52fd731412dd77abc07186c167e7f6ecb4fd561b41a75774d7",
+      "prepared/graph.npz": "07a35f12bc05faca921d32b5e1d99295b153f42534ebce4b44c1d7e7d918e396",
+      "prepared/graph_seed/edge_decayed_mass.npy": "118302928faaf0f97c6b0cce1a2185640a05b48cf751a7a0f6c2c2e5d2cf7cda",
+      "prepared/graph_seed/edge_first_timestamp.npy": "152fe8ee40fcd5d4b3a9207236416459052611bd8d5ac391501ab7a4f5e5729f",
+      "prepared/graph_seed/edge_last_timestamp.npy": "9af45a69cb3e7a1ecd1db8ed1cd5f363392a1780081153e16993d6cec59ba7df",
+      "prepared/graph_seed/edge_recipient.npy": "084aa1e4f66b58435b55a9296d11a68bf96d9fdae551951769816043684b26a9",
+      "prepared/graph_seed/edge_sender.npy": "c0e6834e1a4d2f2f1d332be8be2a326e39bb6134eb1ed24f9516ca685b016a75",
+      "prepared/graph_seed/manifest.json": "bc4cf5ea0833d74a7955f1216288feac7a44ef2da2644bbfbe06aa62518640cd",
+      "prepared/graph_seed/window_offsets.npy": "232570e1ce4aed928a768d9675e86d01813a029658e377b591994752851bfa59",
+      "prepared/profiles.npz": "45bfb081631719ac1142fb0f30787816d6c9ebd0942b601d0c8d2a96edcd5711"
+    }
+  },
+  "go_naming": {
+    "renamed_files": 20,
+    "source_bytes_unchanged": true
+  },
+  "baselines": {
+    "Monoxide": "address placement without Arbor graph/forest preparation",
+    "CLPA": "count graph only; no Arbor forest or temporal profiles"
+  }
+}

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0
+
+- Pin native build artifacts per run and preserve their identity during resume.
+- Make run-local artifact paths portable and add verified dataset relocation on resume.
+- Expand home paths consistently; resolve custom YAML paths relative to the config file.
+- Prepare only the history products needed by each method and check the actual cache/output filesystems.
+- Accept an explicit later-window fusion model during full admission training.
+- Rename version-suffixed and development-stage Go files by responsibility; isolate external legacy integration tests.
+- Keep protocol formats, model parameters and paper reference measurements unchanged.
+
 ## 0.3.1
 
 - Add a real XBlock tutorial with 10,000 historical and 1,000 test transactions, three methods and result export.

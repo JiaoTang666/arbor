@@ -85,10 +85,13 @@ Reference tables are in [`reference/`](reference/); new measurements are saved u
 ./arbor status runs/<run-id>
 ./arbor pause runs/<run-id>
 ./arbor resume runs/<run-id>
+./arbor resume runs/<run-id> --dataset /path/to/moved-data
 ./arbor stop runs/<run-id>
 ```
 
-CLI options override YAML, which overrides recipe defaults. Nested resource settings merge field by field. `--dry-run` prints the resolved plan. `pause` finishes the active case before pausing; `stop` terminates the current run's processes and retains its files. `resume` skips completed cases and finishes interrupted result saving or cleanup. Inspect an interrupted transaction execution before retrying it in a new run directory.
+CLI options override YAML, which overrides recipe defaults. YAML paths are relative to the YAML file; CLI paths are relative to the calling directory. Both expand `~`. Nested resource settings merge field by field. `--dry-run` prints the resolved plan. `pause` finishes the active case before pausing; `stop` terminates the current run's processes and retains its files. `resume` skips completed cases and finishes interrupted result saving or cleanup. Inspect an interrupted transaction execution before retrying it in a new run directory.
+
+Each run keeps its own engine, layout tools and model snapshots. Resume uses those native builds after a software update. Run directories can be moved; if the dataset's relative location changes, `resume --dataset` reconnects it after verifying the original input identity.
 
 **Databases are retained by default.** Use `--cleanup-db` to remove successful-case databases and native logs after results are saved. Failed cases are retained. `--json` supports scripting; `--no-color` disables ANSI colors.
 
@@ -110,7 +113,7 @@ Experiments use the supplied frozen models. Training and model selection are exp
   --fusion-model runs/fusion/model.json --admission-model runs/admission/model.json
 ```
 
-For full training, replace `--small` with `--dataset data/paper`. Each run snapshots its selected models. [Data preparation, source windows and training](docs/data-models.md) describe custom inputs and the chronological training protocol.
+For full training, replace `--small` with `--dataset data/paper`. Admission training accepts `--fusion-model <path>` for its later historical windows; the small fixture uses early windows only. Each run snapshots its selected models. [Data preparation, source windows and training](docs/data-models.md) describe custom inputs and the chronological training protocol.
 
 ## Development
 

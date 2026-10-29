@@ -2,12 +2,11 @@
 from copy import deepcopy
 import itertools
 import math
-from pathlib import Path
 import random
 
 import yaml
 
-from .io import root
+from .io import resolve_path, root
 
 DEFAULTS = dict(method="Arbor", shards=16, nodes_per_shard=4, inject_tps=2000,
                 batch_size=1000, block_size=1000, interval_ms=5000,
@@ -25,11 +24,12 @@ def resolve(recipe, config_file=None, overrides=None):
     if recipe not in RECIPES:
         raise ValueError("unknown recipe: "+recipe)
     config = deepcopy(DEFAULTS)
-    layers = [yaml.safe_load((root()/"configs"/(recipe+".yaml")).read_text()) or {}]
+    layers = [(yaml.safe_load((root()/"configs"/(recipe+".yaml")).read_text()) or {}, root())]
     if config_file:
-        layers.append(yaml.safe_load(Path(config_file).read_text()) or {})
-    layers.append({k: v for k, v in (overrides or {}).items() if v is not None})
-    for supplied in layers:
+        config_file = resolve_path(config_file)
+        layers.append((yaml.safe_load(config_file.read_text()) or {}, config_file.parent))
+    layers.append(({k: v for k, v in (overrides or {}).items() if v is not None}, None))
+    for supplied, base in layers:
         if not isinstance(supplied, dict):
             raise ValueError("configuration must be a mapping")
         unknown = set(supplied)-set(DEFAULTS)-{"dataset"}
@@ -41,12 +41,16 @@ def resolve(recipe, config_file=None, overrides=None):
         if any(not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(v) or v < 0
                for v in resources.values()):
             raise ValueError("resource limits must be finite nonnegative numbers")
+        supplied = dict(supplied)
+        for name in ("dataset", "fusion_model", "admission_model"):
+            if name in supplied:
+                supplied[name] = str(resolve_path(supplied[name], base))
         config.update({k: v for k, v in supplied.items() if k != "resources"})
         config["resources"].update(resources)
     config["recipe"] = recipe
-    config["dataset"] = str(Path(config.get("dataset", root()/"data"/("demo" if recipe == "demo" else "paper"))).resolve())
+    config["dataset"] = str(resolve_path(config.get("dataset", root()/"data"/("demo" if recipe == "demo" else "paper"))))
     for name in ("fusion_model", "admission_model"):
-        config[name] = str(Path(config[name]).expanduser().resolve())
+        config[name] = str(resolve_path(config[name]))
     if config["method"] not in ("Arbor", "Monoxide", "CLPA"):
         raise ValueError("method must be Arbor, Monoxide or CLPA")
     for field in ("shards", "nodes_per_shard", "inject_tps", "batch_size", "block_size", "interval_ms", "group_size", "timeout_seconds"):
