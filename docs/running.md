@@ -6,6 +6,8 @@ Each run retains its own engine, C++ layout library, CLPA layout tool and model 
 
 For pre-0.4 runs, the existing build must still be available and match the recorded identity before it can be adopted as a run snapshot. Existing reference measurements are not rewritten during migration.
 
+Legacy queues with CLPA cases still to execute recover the layout tool identity from their saved layout records. Queues without that original identity need a new run; completed cases and successful executions awaiting finalization keep their existing recovery path.
+
 ## Inspect, pause and stop
 
 `arbor status <run>` displays progress. `arbor pause <run>` completes the active case, saves its results and stops admission at the next case boundary. `arbor resume <run>` continues the remaining plan. `arbor stop <run>` stops the controller and its owned processes, preserving the interrupted case. Stop is immediate; pause is appropriate when the current measurement should finish.

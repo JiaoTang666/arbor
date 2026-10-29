@@ -2,7 +2,7 @@
   "version": "0.4.0",
   "date": "2026-10-29",
   "scope": "Software validation with synthetic transactions",
-  "python_tests": 62,
+  "python_tests": 69,
   "python_go_parity_cases": 32,
   "go_default_compile": "PASS",
   "go_legacy_tag_compile": "PASS",
@@ -76,5 +76,7 @@
   "baselines": {
     "Monoxide": "address placement without Arbor graph/forest preparation",
     "CLPA": "count graph only; no Arbor forest or temporal profiles"
-  }
+  },
+  "launcher_after_move_without_pythonpath_override": "PASS",
+  "legacy_clpa_identity_recovery": "PASS: original linked layout required for pending execution; successful finalization remains recoverable"
 }

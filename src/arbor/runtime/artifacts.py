@@ -48,6 +48,50 @@ def _previous_engine(directory, record):
     return expected
 
 
+def _legacy_clpa_identity(directory, record, existing_engine):
+    expected = record.get("clpa_sha256")
+    if (not record and not existing_engine) or not (directory/"plan.json").is_file():
+        return expected
+    plan = load(directory/"plan.json")
+    cases = [case for case in plan["cases"] if case.get("method") == "CLPA"]
+    def needs_execution(case):
+        target = directory/"cases"/case["id"]
+        if (target/"complete.json").exists():
+            return False
+        if (target/"performance.json").is_file() and (target/"process_exit.json").is_file():
+            return not (load(target/"performance.json").get("status") == "PASS"
+                        and load(target/"process_exit.json").get("status") == "PASS")
+        return True
+    if not any(needs_execution(case) for case in cases):
+        return expected
+    identities = {expected} if expected else set()
+    dataset_record = directory/"dataset_identity.json"
+    dataset_sha = load(dataset_record).get("manifest_sha256") if dataset_record.exists() else None
+    for case in cases:
+        prepared = directory/"prepared"/(case["id"]+".json")
+        if not prepared.is_file():
+            continue
+        layout = resolve_run_path(directory, load(prepared)["layout"])
+        complete = layout/"complete.json"
+        if not complete.is_file() and dataset_sha:
+            # Rebase this exact recorded layout after a verified dataset move; never search caches.
+            dataset = resolve_run_path(directory, plan["config"]["dataset"])
+            if (dataset/"manifest.json").is_file() and sha(dataset/"manifest.json") == dataset_sha:
+                complete = dataset/"layouts"/layout.name/"complete.json"
+        if complete.is_file():
+            identity = load(complete).get("identity", {})
+            if dataset_sha and identity.get("dataset_sha256") != dataset_sha:
+                raise ValueError("recorded CLPA layout belongs to a different dataset")
+            if identity.get("clpa_sha256"):
+                identities.add(identity["clpa_sha256"])
+    if not identities:
+        raise ValueError("original CLPA layout identity is unavailable for this unfinished legacy run; "
+                         "restore its recorded layout/build evidence or start a new run directory")
+    if len(identities) != 1:
+        raise ValueError("recorded CLPA layouts contain different build identities")
+    return next(iter(identities))
+
+
 def build_snapshot(directory, factory):
     """Pin all three native artifacts once, including identity-checked legacy migration."""
     directory = Path(directory)
@@ -56,6 +100,7 @@ def build_snapshot(directory, factory):
     expected = _previous_engine(directory, record)
     if record.get("schema") == "arbor_run_build_v1":
         return load_build(directory)
+    expected_clpa = _legacy_clpa_identity(directory, record, expected)
 
     sources = None
     if record.get("binary") and record.get("library"):
@@ -79,7 +124,8 @@ def build_snapshot(directory, factory):
         raise ValueError("original execution build is unavailable; the current build differs from this run. "
                          "Restore the original build or start a new run directory.")
     for name in ("library", "clpa"):
-        if record.get(name+"_sha256") and digests[name] != record[name+"_sha256"]:
+        original = expected_clpa if name == "clpa" else record.get(name+"_sha256")
+        if original and digests[name] != original:
             raise ValueError("original run build artifact is unavailable: "+name)
 
     destination = directory/"build"

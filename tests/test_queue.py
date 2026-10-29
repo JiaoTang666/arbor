@@ -159,6 +159,72 @@ def test_legacy_build_is_migrated_only_when_original_identities_match(tmp_path):
     assert load(run/"build.json")["schema"] == "arbor_run_build_v1"
 
 
+def legacy_clpa_fixture(tmp_path):
+    source = native_fixture(tmp_path/"checkout/.build")
+    run = tmp_path/"run"; run.mkdir()
+    save(run/"build.json", dict(binary=str(source[0]), library=str(source[1]),
+         binary_sha256=sha(source[0]), library_sha256=sha(source[1])))
+    save(run/"plan.json", dict(config=dict(dataset=str(tmp_path/"data")),
+         cases=[dict(id="one", method="CLPA"), dict(id="two", method="Arbor")]))
+    return run, source
+
+
+def test_legacy_unfinished_clpa_requires_recorded_helper_identity(tmp_path):
+    run, source = legacy_clpa_fixture(tmp_path)
+    original = load(run/"build.json")
+    # Rebuilding only cmd/arbor-layout leaves the main engine/library unchanged.
+    source[2].write_bytes(b"new-clpa-helper")
+    save(source[2].parent/"build.json", dict(clpa_sha256=sha(source[2])))
+    with pytest.raises(ValueError, match="original CLPA layout identity is unavailable"):
+        build_snapshot(run, lambda: source)
+    assert load(run/"build.json") == original
+    assert not (run/"build").exists()
+    # Losing the legacy build marker does not make already measured runs new runs.
+    (run/"build.json").unlink()
+    save(run/"cases/two/performance.json", dict(status="PASS", binary_sha256=sha(source[0])))
+    with pytest.raises(ValueError, match="original CLPA layout identity is unavailable"):
+        build_snapshot(run, lambda: source)
+
+
+def test_legacy_clpa_uses_its_recorded_layout_identity_after_dataset_move(tmp_path):
+    run, source = legacy_clpa_fixture(tmp_path)
+    dataset = tmp_path/"data"; dataset.mkdir()
+    save(dataset/"manifest.json", dict(input="unchanged"))
+    manifest_sha = sha(dataset/"manifest.json")
+    save(run/"dataset_identity.json", dict(manifest_sha256=manifest_sha))
+    layout = dataset/"layouts/exact-recorded-layout"
+    save(layout/"complete.json", dict(identity=dict(dataset_sha256=manifest_sha, clpa_sha256=sha(source[2]))))
+    save(run/"prepared/one.json", dict(layout="/unavailable/old-data/layouts/exact-recorded-layout"))
+    pinned = build_snapshot(run, lambda: pytest.fail("matching legacy artifacts need no rebuild"))
+    assert sha(pinned[2]) == sha(source[2])
+    assert load(run/"build.json")["clpa_sha256"] == sha(source[2])
+
+
+def test_legacy_clpa_rejects_changed_helper_with_unchanged_engine_and_library(tmp_path):
+    run, source = legacy_clpa_fixture(tmp_path)
+    layout = tmp_path/"recorded-layout"
+    save(layout/"complete.json", dict(identity=dict(clpa_sha256=sha(source[2]))))
+    save(run/"prepared/one.json", dict(layout=str(layout)))
+    original = load(run/"build.json")
+    source[2].write_bytes(b"new-clpa-helper")
+    with pytest.raises(ValueError, match="artifact is unavailable: clpa"):
+        build_snapshot(run, lambda: source)
+    assert load(run/"build.json") == original
+    assert not (run/"build").exists()
+
+
+@pytest.mark.parametrize("finalizing", [False, True])
+def test_legacy_completed_clpa_does_not_require_unused_helper_identity(tmp_path, finalizing):
+    run, source = legacy_clpa_fixture(tmp_path)
+    if finalizing:
+        save(run/"cases/one/performance.json", dict(status="PASS", binary_sha256=sha(source[0])))
+        save(run/"cases/one/process_exit.json", dict(status="PASS"))
+    else:
+        save(run/"cases/one/complete.json", dict(status="PASS"))
+    source[2].write_bytes(b"helper-not-used-by-remaining-Arbor")
+    assert sha(build_snapshot(run, lambda: source)[0]) == sha(source[0])
+
+
 def test_resume_uses_original_snapshot_for_remaining_cases(tmp_path, monkeypatch):
     plan = setup_queue(tmp_path, monkeypatch)
     source = native_fixture(tmp_path/"checkout/.build")
